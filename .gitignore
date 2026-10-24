@@ -1,4 +1,4 @@
-﻿# Python environments and generated files
+# Python environments and generated files
 .venv/
 venv/
 env/
@@ -67,4 +67,3 @@ sumo_smoke_test/tripinfo.xml
 .agents/
 
 # Existing frontend; replacement will be integrated separately
-/frontend/
