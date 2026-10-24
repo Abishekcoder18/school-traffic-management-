@@ -1,0 +1,7 @@
+{
+  "name": "GateFlow AI",
+  "description": "Intelligent school traffic and gate management platform for administrators and drivers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,228 @@
+{
+  "_meta": {
+    "dataSource": "Synthetic",
+    "description": "All values in this file are assumed/synthetic for demonstration purposes. They do not represent real-world school traffic observations.",
+    "version": "1.0.0"
+  },
+  "school": {
+    "id": "OAK-2026",
+    "name": "Oakridge Academy & Secondary Campus",
+    "code": "OAK-2026-DISTRICT-7",
+    "activeSession": "Afternoon Dismissal (Peak Period)",
+    "timeWindowStart": "14:30",
+    "timeWindowEnd": "15:45",
+    "totalStudents": 775,
+    "totalVehicles": 540,
+    "totalGates": 4,
+    "pickupBays": 21,
+    "schoolContactPhone": "(555) 839-2041",
+    "trafficCoordinator": "Officer Marcus Vance (Traffic Safety Lead)",
+    "randomSeed": 42,
+    "vehicleCapacityThreshold": 35,
+    "averageDwellTimeSeconds": 48,
+    "designDwellTimeSeconds": 26.6
+  },
+  "gates": [
+    {
+      "id": "gate-1",
+      "name": "Gate 1 — Main Campus Loop",
+      "bays": 6,
+      "hourlyCapacity": 140,
+      "peakDemand": 110,
+      "utilizationRate": 78,
+      "status": "optimal",
+      "assignedGrades": ["Kindergarten", "Pre-K", "Early Care"],
+      "locationNote": "Direct access via South Boulevard with dual bypass lane",
+      "approachStreet": "South Boulevard"
+    },
+    {
+      "id": "gate-2",
+      "name": "Gate 2 — East Wing Loop",
+      "bays": 4,
+      "hourlyCapacity": 90,
+      "peakDemand": 135,
+      "utilizationRate": 150,
+      "status": "bottleneck",
+      "assignedGrades": ["Grades 1–3", "Grades 4–5"],
+      "locationNote": "Single-lane entry off Municipal Parkway; severe spillback",
+      "approachStreet": "Municipal Parkway"
+    },
+    {
+      "id": "gate-3",
+      "name": "Gate 3 — North Bus & Van Bay",
+      "bays": 5,
+      "hourlyCapacity": 100,
+      "peakDemand": 82,
+      "utilizationRate": 82,
+      "status": "moderate",
+      "assignedGrades": ["District Transit Buses", "Special Care Vans", "Grades 6–8"],
+      "locationNote": "Controlled security barrier with dedicated staff signal",
+      "approachStreet": "North Campus Road"
+    },
+    {
+      "id": "gate-4",
+      "name": "Gate 4 — Athletics & South Overflow",
+      "bays": 6,
+      "hourlyCapacity": 130,
+      "peakDemand": 45,
+      "utilizationRate": 35,
+      "status": "optimal",
+      "assignedGrades": ["High School Grades 9–12", "Carpool Volunteers"],
+      "locationNote": "High capacity staging area, currently underutilized by 65%",
+      "approachStreet": "Athletics Drive"
+    }
+  ],
+  "cohorts": [
+    {
+      "id": "c-prek",
+      "cohort": "Kindergarten & Early Care",
+      "gradeSpan": "Pre-K – K",
+      "studentCount": 95,
+      "vehicleDemand": 75,
+      "currentDismissalTime": "14:30",
+      "assignedGateId": "gate-1",
+      "bayRequirement": 4,
+      "isKindergarten": true,
+      "hasSiblingGroup": false
+    },
+    {
+      "id": "c-g13",
+      "cohort": "Elementary Lower Cohort",
+      "gradeSpan": "Grades 1–3",
+      "studentCount": 190,
+      "vehicleDemand": 140,
+      "currentDismissalTime": "15:00",
+      "assignedGateId": "gate-2",
+      "bayRequirement": 5,
+      "isKindergarten": false,
+      "hasSiblingGroup": true
+    },
+    {
+      "id": "c-g45",
+      "cohort": "Elementary Upper Cohort",
+      "gradeSpan": "Grades 4–5",
+      "studentCount": 180,
+      "vehicleDemand": 130,
+      "currentDismissalTime": "15:00",
+      "assignedGateId": "gate-2",
+      "bayRequirement": 5,
+      "isKindergarten": false,
+      "hasSiblingGroup": true
+    },
+    {
+      "id": "c-g68",
+      "cohort": "Middle School Cadre",
+      "gradeSpan": "Grades 6–8",
+      "studentCount": 160,
+      "vehicleDemand": 115,
+      "currentDismissalTime": "15:15",
+      "assignedGateId": "gate-3",
+      "bayRequirement": 4,
+      "isKindergarten": false,
+      "hasSiblingGroup": false
+    },
+    {
+      "id": "c-hs",
+      "cohort": "High School & Secondary",
+      "gradeSpan": "Grades 9–12",
+      "studentCount": 150,
+      "vehicleDemand": 80,
+      "currentDismissalTime": "15:30",
+      "assignedGateId": "gate-4",
+      "bayRequirement": 3,
+      "isKindergarten": false,
+      "hasSiblingGroup": false
+    }
+  ],
+  "siblingGroups": [
+    {
+      "id": "sg-1",
+      "name": "Elementary Sibling Families",
+      "cohortIds": ["c-g13", "c-g45"],
+      "description": "Families with children in both Lower and Upper Elementary share a single pickup"
+    }
+  ],
+  "trafficMetrics": [
+    {
+      "id": "peak-queue",
+      "label": "Peak Queue Length",
+      "value": "48 vehicles",
+      "numericValue": 48,
+      "unit": "veh",
+      "change": "+14% vs limit",
+      "trend": "up",
+      "status": "alert",
+      "description": "Design limit is 35 vehicles before campus perimeter spillback"
+    },
+    {
+      "id": "avg-wait-time",
+      "label": "95th% Pickup Wait Time",
+      "value": "16.4 min",
+      "numericValue": 16.4,
+      "unit": "min",
+      "change": "+4.2 min vs baseline",
+      "trend": "up",
+      "status": "warning",
+      "description": "Calculated from gate entry check-in to vehicle departure"
+    },
+    {
+      "id": "gate-utilization",
+      "label": "Bottleneck Gate Utilization",
+      "value": "150%",
+      "numericValue": 150,
+      "unit": "%",
+      "change": "Severe load imbalance",
+      "trend": "up",
+      "status": "alert",
+      "description": "East Wing Loop (Gate 2) is 50% over throughput capacity"
+    },
+    {
+      "id": "total-delay",
+      "label": "Total Vehicle Delay",
+      "value": "138 veh-hrs",
+      "numericValue": 138,
+      "unit": "hrs",
+      "change": "+26% weekly average",
+      "trend": "up",
+      "status": "warning",
+      "description": "Cumulative idle time across all 4 gate staging zones"
+    }
+  ],
+  "driverAssignment": {
+    "driverName": "Sarah Jenkins",
+    "driverId": "DRV-84920",
+    "studentName": "Leo Jenkins",
+    "grade": "Grade 2 — Mrs. Henderson",
+    "vehiclePlate": "7XYZ892 (Silver Honda Odyssey)",
+    "scheduleTitle": "Afternoon Dismissal — Elementary Stagger",
+    "arrivalWindow": "2:40 PM – 2:50 PM",
+    "officialSlot": "2:45 PM",
+    "gateName": "Gate 2 — East Wing Loop",
+    "gateNumber": "Gate 2",
+    "pickupZone": "East Elementary Wing",
+    "bayNumber": "Bay #3",
+    "laneColor": "Blue Lane",
+    "routeInstructions": "Approach northbound via Municipal Parkway. Signal right into Gate 2 Queue Lane B. Follow Blue Lane markings to Bay #3.",
+    "approachStreet": "Municipal Parkway (Northbound)",
+    "queueStatus": "Flowing smoothly · 3 vehicles ahead",
+    "assignmentStatus": "Confirmed",
+    "instructions": [
+      "Display your digital dashboard or physical green parking pass on passenger visor.",
+      "Remain inside your vehicle. Oakridge staff escorts will bring Leo directly to your vehicle door.",
+      "Do not block the pedestrian crosswalk before Bay #1.",
+      "If arriving past 2:55 PM, proceed directly to Gate 4 Overflow Bay to avoid blocking upper grades."
+    ],
+    "notices": [
+      {
+        "title": "Rain Protocol Active",
+        "message": "Covered awning bays are activated. Vehicle boarding takes place strictly in marked numbered slots.",
+        "type": "notice"
+      },
+      {
+        "title": "Pedestrian Safety Zone",
+        "message": "Speed limit on East Loop approach is reduced to 10 MPH. Watch for crossing guards at Crosswalk B.",
+        "type": "advisory"
+      }
+    ]
+  }
+}

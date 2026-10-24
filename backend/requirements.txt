@@ -1,0 +1,18 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic>=2.11.4
+pydantic-settings>=2.7.1
+python-dotenv==1.0.1
+httpx==0.27.2
+pytest==8.3.3
+pytest-asyncio==0.24.0
+typing-extensions==4.12.2
+
+# ── MySQL + Auth ───────────────────────────────────────────────────────────────
+SQLAlchemy==2.0.36
+PyMySQL==1.1.1
+cryptography==43.0.3
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.12
+
