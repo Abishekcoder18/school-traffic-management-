@@ -1,0 +1,7 @@
+﻿group_id,group_name,student_count,sibling_pair,fixed_offset_minutes,allowed_offsets_minutes
+G1,Kindergarten,150,,0,[0]
+G2,Grades 1-2,200,,,"[-15,-10,-5,0,5,10,15]"
+G3,Grades 3-4,220,SIBLING_A,,"[-15,-10,-5,0,5,10,15]"
+G4,Grades 5-6,230,SIBLING_A,,"[-15,-10,-5,0,5,10,15]"
+G5,Grades 7-8,200,,,"[-15,-10,-5,0,5,10,15]"
+G6,Grades 9-10,200,,,"[-5,0,5]"

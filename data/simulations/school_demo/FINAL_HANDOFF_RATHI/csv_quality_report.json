@@ -1,0 +1,8 @@
+{
+  "report_status": "SUPERSEDED",
+  "notice": "This report belongs to an earlier handoff stage and must not be used to describe the current four-scenario measured CSV dataset.",
+  "current_quality_report": "rathi_measured_csv_quality_report.json",
+  "current_readme": "README_DATA.md",
+  "backup_location": "E:\\School_Traffic_Management\\data\\simulations\\school_demo\\handoff_docs_backup_20261025_002312\\csv_quality_report.json",
+  "reason": "Earlier report contains stale row counts, metric counts, or header-only observation claims."
+}

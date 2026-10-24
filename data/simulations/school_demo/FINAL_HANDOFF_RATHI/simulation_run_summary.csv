@@ -1,0 +1,5 @@
+﻿scenario_id,run_id,plan_type,demand_multiplier,seed,simulation_horizon_seconds,vehicles_generated,vehicles_inserted,vehicles_completed,vehicles_unfinished,completion_rate,mean_wait_seconds,p95_wait_seconds,mean_trip_duration_seconds,mean_time_loss_seconds,peak_approach_queue_vehicles,peak_zone_occupancy_vehicles,spillback_duration_seconds,zone_capacity_violations,source_engine,validation_status
+baseline,baseline_seed20261024,current,1.0,20261024,3600,583,172,97,75,0.166381,930.443,1846.0,1236.402,1101.165,48,9,,2560,SUMO,MEASURED_WITH_LIMITATIONS
+uniform,uniform_seed20261024,uniform_benchmark,1.0,20261024,3600,583,169,96,73,0.164666,859.083,1727.0,1117.99,980.762,45,9,,2379,SUMO,MEASURED_WITH_LIMITATIONS
+optimized,optimized_seed20261024,optimized,1.0,20261024,3600,583,177,114,63,0.19554,1080.526,2072.0,1375.228,1234.99,44,9,,3094,SUMO,MEASURED_WITH_LIMITATIONS
+stress_1_3x,stress_1_3x_seed20261024,stress,1.3,20261024,3600,756,191,110,81,0.145503,1111.518,2176.0,1403.2,1263.014,51,9,,3092,SUMO,MEASURED_WITH_LIMITATIONS

@@ -1,0 +1,70 @@
+{
+  "input_file": "lane_queue_observations.csv",
+  "queue_length_unit": "metres",
+  "spillback_proxy_threshold_m": 100.0,
+  "scenarios": {
+    "baseline": {
+      "observed_approach_timestamps": 44,
+      "timestamps_above_threshold": 39,
+      "peak_approach_queue": {
+        "length_m": 178.36,
+        "timestamp_seconds": 1380.0,
+        "lane_id": "E_APPROACH_1"
+      },
+      "peak_pickup_zone_queue": {
+        "length_m": 57.54,
+        "timestamp_seconds": 2220.0,
+        "lane_id": "E_ZONE_3_0"
+      }
+    },
+    "uniform": {
+      "observed_approach_timestamps": 42,
+      "timestamps_above_threshold": 38,
+      "peak_approach_queue": {
+        "length_m": 178.35,
+        "timestamp_seconds": 2580.0,
+        "lane_id": "E_APPROACH_1"
+      },
+      "peak_pickup_zone_queue": {
+        "length_m": 57.54,
+        "timestamp_seconds": 1860.0,
+        "lane_id": "E_ZONE_3_0"
+      }
+    },
+    "optimized": {
+      "observed_approach_timestamps": 54,
+      "timestamps_above_threshold": 48,
+      "peak_approach_queue": {
+        "length_m": 178.19,
+        "timestamp_seconds": 3000.0,
+        "lane_id": "E_APPROACH_1"
+      },
+      "peak_pickup_zone_queue": {
+        "length_m": 57.55,
+        "timestamp_seconds": 1980.0,
+        "lane_id": "E_ZONE_3_0"
+      }
+    },
+    "stress_1_3x": {
+      "observed_approach_timestamps": 53,
+      "timestamps_above_threshold": 51,
+      "peak_approach_queue": {
+        "length_m": 178.29,
+        "timestamp_seconds": 2760.0,
+        "lane_id": "E_APPROACH_1"
+      },
+      "peak_pickup_zone_queue": {
+        "length_m": 57.54,
+        "timestamp_seconds": 3120.0,
+        "lane_id": "E_ZONE_3_0"
+      }
+    }
+  },
+  "limitations": [
+    "Lane classification follows lane ID naming conventions.",
+    "Queue length is not a vehicle count.",
+    "A queue above the proxy threshold does not prove physical spillback.",
+    "Queue durations are estimated from sampled timestamps.",
+    "Missing lane records are not assumed to have zero queue."
+  ]
+}

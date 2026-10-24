@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-10-24T14:42:48.710365+05:30 by Eclipse SUMO netconvert 1.28.0
+<netconvertConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <node-files value="network.nod.xml"/>
+        <edge-files value="network.edg.xml"/>
+    </input>
+
+    <output>
+        <output-file value="network.net.xml"/>
+    </output>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+    </junctions>
+
+</netconvertConfiguration>
+-->
+
+<net version="1.20" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,65.00" convBoundary="0.00,0.00,435.00,130.00" origBoundary="0.00,-65.00,435.00,65.00" projParameter="!"/>
+
+    <edge id=":N_GATE_0" function="internal">
+        <lane id=":N_GATE_0_0" index="0" speed="4.17" length="11.07" shape="270.06,63.40 271.93,62.90 273.70,61.41 275.38,58.93 276.96,55.45"/>
+    </edge>
+    <edge id=":N_GATE_1" function="internal">
+        <lane id=":N_GATE_1_0" index="0" speed="4.17" length="12.20" shape="270.06,63.40 273.28,63.02 275.78,61.93 278.06,60.22 280.59,57.99"/>
+    </edge>
+    <edge id=":N_GATE_2" function="internal">
+        <lane id=":N_GATE_2_0" index="0" speed="6.95" length="12.22" shape="270.06,63.40 282.27,63.40"/>
+    </edge>
+    <edge id=":N_GATE_3" function="internal">
+        <lane id=":N_GATE_3_0" index="0" speed="4.17" length="3.69" shape="270.06,63.40 272.96,63.85 273.65,64.15"/>
+    </edge>
+    <edge id=":N_GATE_4" function="internal">
+        <lane id=":N_GATE_4_0" index="0" speed="4.17" length="14.09" shape="270.06,63.40 272.92,64.00 275.38,65.78 277.45,68.76 279.11,72.93"/>
+    </edge>
+    <edge id=":N_GATE_10" function="internal">
+        <lane id=":N_GATE_10_0" index="0" speed="4.17" length="11.40" shape="273.65,64.15 276.07,65.21 279.39,67.48 282.91,70.65"/>
+    </edge>
+    <edge id=":N_GATE_5" function="internal">
+        <lane id=":N_GATE_5_0" index="0" speed="4.17" length="11.07" shape="270.06,63.40 271.93,62.90 273.70,61.41 275.38,58.93 276.96,55.45"/>
+    </edge>
+    <edge id=":N_GATE_6" function="internal">
+        <lane id=":N_GATE_6_0" index="0" speed="4.17" length="12.20" shape="270.06,63.40 273.28,63.02 275.78,61.93 278.06,60.22 280.59,57.99"/>
+    </edge>
+    <edge id=":N_GATE_7" function="internal">
+        <lane id=":N_GATE_7_0" index="0" speed="6.95" length="12.22" shape="270.06,63.40 282.27,63.40"/>
+    </edge>
+    <edge id=":N_GATE_8" function="internal">
+        <lane id=":N_GATE_8_0" index="0" speed="4.17" length="5.89" shape="270.06,63.40 272.96,63.85 275.66,65.03"/>
+    </edge>
+    <edge id=":N_GATE_9" function="internal">
+        <lane id=":N_GATE_9_0" index="0" speed="4.17" length="2.98" shape="270.06,63.40 272.58,64.30 272.81,64.50"/>
+    </edge>
+    <edge id=":N_GATE_11" function="internal">
+        <lane id=":N_GATE_11_0" index="0" speed="4.17" length="9.21" shape="275.66,65.03 276.07,65.21 279.39,67.48 282.91,70.65"/>
+    </edge>
+    <edge id=":N_GATE_12" function="internal">
+        <lane id=":N_GATE_12_0" index="0" speed="4.17" length="10.68" shape="272.81,64.50 275.25,66.60 277.59,69.68 279.11,72.93"/>
+    </edge>
+    <edge id=":N_JUNCTION_0" function="internal">
+        <lane id=":N_JUNCTION_0_0" index="0" speed="6.95" length="4.39" shape="178.50,60.20 181.50,63.40"/>
+    </edge>
+    <edge id=":N_JUNCTION_1" function="internal">
+        <lane id=":N_JUNCTION_1_0" index="0" speed="6.95" length="3.00" shape="178.50,63.40 181.50,63.40"/>
+    </edge>
+
+    <edge id="E_APPROACH" from="N_WEST" to="N_JUNCTION" priority="-1">
+        <lane id="E_APPROACH_0" index="0" speed="8.33" length="178.50" shape="0.00,60.20 178.50,60.20"/>
+        <lane id="E_APPROACH_1" index="1" speed="8.33" length="178.50" shape="0.00,63.40 178.50,63.40"/>
+    </edge>
+    <edge id="E_BUS_BAY" from="N_GATE" to="N_BUS" priority="-1">
+        <lane id="E_BUS_BAY_0" index="0" speed="2.78" length="60.03" shape="276.96,55.45 298.51,-0.57"/>
+    </edge>
+    <edge id="E_IN_1" from="N_JUNCTION" to="N_GATE" priority="-1">
+        <lane id="E_IN_1_0" index="0" speed="5.56" length="88.56" shape="181.50,63.40 270.06,63.40"/>
+    </edge>
+    <edge id="E_IN_2" from="N_JUNCTION" to="N_GATE" priority="-1">
+        <lane id="E_IN_2_0" index="0" speed="5.56" length="88.56" shape="181.50,63.40 270.06,63.40"/>
+    </edge>
+    <edge id="E_OUT_1" from="N_GATE" to="N_EAST" priority="-1">
+        <lane id="E_OUT_1_0" index="0" speed="8.33" length="152.73" shape="282.27,63.40 435.00,63.40"/>
+    </edge>
+    <edge id="E_ZONE_1" from="N_GATE" to="N_ZONE_1" priority="-1">
+        <lane id="E_ZONE_1_0" index="0" speed="2.78" length="39.91" shape="282.91,70.65 311.13,98.87"/>
+    </edge>
+    <edge id="E_ZONE_2" from="N_GATE" to="N_ZONE_2" priority="-1">
+        <lane id="E_ZONE_2_0" index="0" speed="2.78" length="44.33" shape="280.59,57.99 313.95,28.80"/>
+    </edge>
+    <edge id="E_ZONE_3" from="N_GATE" to="N_ZONE_3" priority="-1">
+        <lane id="E_ZONE_3_0" index="0" speed="2.78" length="59.22" shape="279.11,72.93 296.53,129.53"/>
+    </edge>
+
+    <junction id="N_BUS" type="dead_end" x="300.00" y="0.00" incLanes="E_BUS_BAY_0" intLanes="" shape="297.01,-1.15 300.00,0.00"/>
+    <junction id="N_EAST" type="dead_end" x="435.00" y="65.00" incLanes="E_OUT_1_0" intLanes="" shape="435.00,61.80 435.00,65.00"/>
+    <junction id="N_GATE" type="priority" x="275.00" y="65.00" incLanes="E_IN_1_0 E_IN_2_0" intLanes=":N_GATE_0_0 :N_GATE_1_0 :N_GATE_2_0 :N_GATE_10_0 :N_GATE_4_0 :N_GATE_5_0 :N_GATE_6_0 :N_GATE_7_0 :N_GATE_11_0 :N_GATE_12_0" shape="277.59,73.40 280.64,72.46 281.78,71.78 284.04,69.52 281.84,67.01 281.34,66.13 281.25,65.50 281.56,65.13 282.27,65.00 282.27,61.80 280.60,61.51 280.31,61.15 280.38,60.64 280.83,59.99 281.64,59.19 279.53,56.78 278.45,56.03 275.46,54.88 274.57,56.99 273.68,58.72 272.78,60.07 271.88,61.03 270.97,61.61 270.06,61.80 270.06,65.00 273.09,65.93 274.41,67.10 275.60,68.73 276.66,70.84">
+        <request index="0" response="0000000000" foes="0000100000" cont="0"/>
+        <request index="1" response="0000000000" foes="0001100000" cont="0"/>
+        <request index="2" response="0000000000" foes="0011100000" cont="0"/>
+        <request index="3" response="1000000000" foes="1111100000" cont="1"/>
+        <request index="4" response="0000000000" foes="1111100000" cont="0"/>
+        <request index="5" response="0000011111" foes="0000011111" cont="0"/>
+        <request index="6" response="0000011110" foes="0000011110" cont="0"/>
+        <request index="7" response="0000011100" foes="0000011100" cont="0"/>
+        <request index="8" response="0000011000" foes="0000011000" cont="1"/>
+        <request index="9" response="0000010000" foes="0000011000" cont="1"/>
+    </junction>
+    <junction id="N_JUNCTION" type="priority" x="180.00" y="65.00" incLanes="E_APPROACH_0 E_APPROACH_1" intLanes=":N_JUNCTION_0_0 :N_JUNCTION_1_0" shape="181.50,65.00 181.50,61.80 178.50,58.60 178.50,65.00">
+        <request index="0" response="00" foes="00" cont="0"/>
+        <request index="1" response="00" foes="00" cont="0"/>
+    </junction>
+    <junction id="N_WEST" type="dead_end" x="0.00" y="65.00" incLanes="" intLanes="" shape="0.00,65.00 0.00,58.60"/>
+    <junction id="N_ZONE_1" type="dead_end" x="310.00" y="100.00" incLanes="E_ZONE_1_0" intLanes="" shape="312.26,97.74 310.00,100.00"/>
+    <junction id="N_ZONE_2" type="dead_end" x="315.00" y="30.00" incLanes="E_ZONE_2_0" intLanes="" shape="312.89,27.59 315.00,30.00"/>
+    <junction id="N_ZONE_3" type="dead_end" x="295.00" y="130.00" incLanes="E_ZONE_3_0" intLanes="" shape="298.06,129.06 295.00,130.00"/>
+
+    <junction id=":N_GATE_10_0" type="internal" x="273.65" y="64.15" incLanes=":N_GATE_3_0 :N_GATE_9_0" intLanes=":N_GATE_12_0 :N_GATE_5_0 :N_GATE_6_0 :N_GATE_7_0 :N_GATE_8_0 :N_GATE_9_0"/>
+    <junction id=":N_GATE_11_0" type="internal" x="275.66" y="65.03" incLanes=":N_GATE_8_0 E_IN_1_0" intLanes=":N_GATE_3_0 :N_GATE_4_0"/>
+    <junction id=":N_GATE_12_0" type="internal" x="272.81" y="64.50" incLanes=":N_GATE_9_0 E_IN_1_0" intLanes=":N_GATE_3_0 :N_GATE_4_0"/>
+
+    <connection from="E_APPROACH" to="E_IN_2" fromLane="0" toLane="0" via=":N_JUNCTION_0_0" dir="s" state="M"/>
+    <connection from="E_APPROACH" to="E_IN_1" fromLane="1" toLane="0" via=":N_JUNCTION_1_0" dir="s" state="M"/>
+    <connection from="E_IN_1" to="E_BUS_BAY" fromLane="0" toLane="0" via=":N_GATE_0_0" dir="r" state="M"/>
+    <connection from="E_IN_1" to="E_ZONE_2" fromLane="0" toLane="0" via=":N_GATE_1_0" dir="R" state="M"/>
+    <connection from="E_IN_1" to="E_OUT_1" fromLane="0" toLane="0" via=":N_GATE_2_0" dir="s" state="M"/>
+    <connection from="E_IN_1" to="E_ZONE_1" fromLane="0" toLane="0" via=":N_GATE_3_0" dir="L" state="m"/>
+    <connection from="E_IN_1" to="E_ZONE_3" fromLane="0" toLane="0" via=":N_GATE_4_0" dir="l" state="M"/>
+    <connection from="E_IN_2" to="E_BUS_BAY" fromLane="0" toLane="0" via=":N_GATE_5_0" dir="r" state="m"/>
+    <connection from="E_IN_2" to="E_ZONE_2" fromLane="0" toLane="0" via=":N_GATE_6_0" dir="R" state="m"/>
+    <connection from="E_IN_2" to="E_OUT_1" fromLane="0" toLane="0" via=":N_GATE_7_0" dir="s" state="m"/>
+    <connection from="E_IN_2" to="E_ZONE_1" fromLane="0" toLane="0" via=":N_GATE_8_0" dir="L" state="m"/>
+    <connection from="E_IN_2" to="E_ZONE_3" fromLane="0" toLane="0" via=":N_GATE_9_0" dir="l" state="m"/>
+
+    <connection from=":N_GATE_0" to="E_BUS_BAY" fromLane="0" toLane="0" dir="r" state="M"/>
+    <connection from=":N_GATE_1" to="E_ZONE_2" fromLane="0" toLane="0" dir="R" state="M"/>
+    <connection from=":N_GATE_2" to="E_OUT_1" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":N_GATE_3" to="E_ZONE_1" fromLane="0" toLane="0" via=":N_GATE_10_0" dir="L" state="m"/>
+    <connection from=":N_GATE_10" to="E_ZONE_1" fromLane="0" toLane="0" dir="L" state="M"/>
+    <connection from=":N_GATE_4" to="E_ZONE_3" fromLane="0" toLane="0" dir="l" state="M"/>
+    <connection from=":N_GATE_5" to="E_BUS_BAY" fromLane="0" toLane="0" dir="r" state="M"/>
+    <connection from=":N_GATE_6" to="E_ZONE_2" fromLane="0" toLane="0" dir="R" state="M"/>
+    <connection from=":N_GATE_7" to="E_OUT_1" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":N_GATE_8" to="E_ZONE_1" fromLane="0" toLane="0" via=":N_GATE_11_0" dir="L" state="m"/>
+    <connection from=":N_GATE_11" to="E_ZONE_1" fromLane="0" toLane="0" dir="L" state="M"/>
+    <connection from=":N_GATE_9" to="E_ZONE_3" fromLane="0" toLane="0" via=":N_GATE_12_0" dir="l" state="m"/>
+    <connection from=":N_GATE_12" to="E_ZONE_3" fromLane="0" toLane="0" dir="l" state="M"/>
+    <connection from=":N_JUNCTION_0" to="E_IN_2" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":N_JUNCTION_1" to="E_IN_1" fromLane="0" toLane="0" dir="s" state="M"/>
+
+</net>

@@ -1,0 +1,168 @@
+{
+  "network_id": "NET_SYN_001",
+  "data_status": "assumed",
+  "notice": "Entirely fictional topology; no real-world coordinates. SUMO network generation/execution has not been performed.",
+  "nodes": [
+    {
+      "node_id": "N_WEST",
+      "type": "boundary"
+    },
+    {
+      "node_id": "N_JUNCTION",
+      "type": "priority"
+    },
+    {
+      "node_id": "N_GATE",
+      "type": "school_gate"
+    },
+    {
+      "node_id": "N_EAST",
+      "type": "boundary"
+    },
+    {
+      "node_id": "N_ZONE_1",
+      "type": "pickup"
+    },
+    {
+      "node_id": "N_ZONE_2",
+      "type": "pickup"
+    },
+    {
+      "node_id": "N_ZONE_3",
+      "type": "pickup"
+    },
+    {
+      "node_id": "N_BUS",
+      "type": "pickup"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "E_APPROACH",
+      "from": "N_WEST",
+      "to": "N_JUNCTION",
+      "lanes": 2,
+      "length_m": 180,
+      "speed_limit_mps": 8.33,
+      "direction": "inbound"
+    },
+    {
+      "edge_id": "E_IN_1",
+      "from": "N_JUNCTION",
+      "to": "N_GATE",
+      "lanes": 1,
+      "length_m": 95,
+      "speed_limit_mps": 5.56,
+      "direction": "inbound"
+    },
+    {
+      "edge_id": "E_IN_2",
+      "from": "N_JUNCTION",
+      "to": "N_GATE",
+      "lanes": 1,
+      "length_m": 110,
+      "speed_limit_mps": 5.56,
+      "direction": "inbound"
+    },
+    {
+      "edge_id": "E_OUT_1",
+      "from": "N_GATE",
+      "to": "N_EAST",
+      "lanes": 1,
+      "length_m": 160,
+      "speed_limit_mps": 8.33,
+      "direction": "outbound"
+    },
+    {
+      "edge_id": "E_ZONE_1",
+      "from": "N_GATE",
+      "to": "N_ZONE_1",
+      "lanes": 1,
+      "length_m": 36,
+      "speed_limit_mps": 2.78,
+      "direction": "pickup"
+    },
+    {
+      "edge_id": "E_ZONE_2",
+      "from": "N_GATE",
+      "to": "N_ZONE_2",
+      "lanes": 1,
+      "length_m": 48,
+      "speed_limit_mps": 2.78,
+      "direction": "pickup"
+    },
+    {
+      "edge_id": "E_ZONE_3",
+      "from": "N_GATE",
+      "to": "N_ZONE_3",
+      "lanes": 1,
+      "length_m": 30,
+      "speed_limit_mps": 2.78,
+      "direction": "pickup"
+    },
+    {
+      "edge_id": "E_BUS_BAY",
+      "from": "N_GATE",
+      "to": "N_BUS",
+      "lanes": 1,
+      "length_m": 42,
+      "speed_limit_mps": 2.78,
+      "direction": "bus_pickup"
+    },
+    {
+      "edge_id": "E_OUTBOUND",
+      "from": "N_EAST",
+      "to": "N_WEST",
+      "lanes": 1,
+      "length_m": 220,
+      "speed_limit_mps": 8.33,
+      "direction": "outbound"
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "R_Z01",
+      "edges": [
+        "E_APPROACH",
+        "E_IN_1",
+        "E_ZONE_1"
+      ]
+    },
+    {
+      "route_id": "R_Z02",
+      "edges": [
+        "E_APPROACH",
+        "E_IN_2",
+        "E_ZONE_2"
+      ]
+    },
+    {
+      "route_id": "R_Z03",
+      "edges": [
+        "E_APPROACH",
+        "E_IN_1",
+        "E_ZONE_3"
+      ]
+    },
+    {
+      "route_id": "R_Z04",
+      "edges": [
+        "E_APPROACH",
+        "E_IN_2",
+        "E_BUS_BAY"
+      ]
+    }
+  ],
+  "vehicle_types": [
+    "car",
+    "two_wheeler",
+    "van",
+    "bus",
+    "auto_rickshaw"
+  ],
+  "sumo_conversion_notes": [
+    "Map node/edge IDs to SUMO XML and validate connectivity with netconvert.",
+    "Vehicle dwell/stop behavior must be encoded in generated route or additional files before execution.",
+    "Legal and safety validation is outside the scope of synthetic geometry."
+  ]
+}

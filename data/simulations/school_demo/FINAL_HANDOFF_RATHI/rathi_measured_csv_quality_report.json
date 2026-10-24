@@ -1,0 +1,170 @@
+{
+  "project": "GateFlow AI",
+  "dataset": "Rathi measured CSV handoff",
+  "seed": 20261024,
+  "horizon_seconds": 3600,
+  "interval_seconds": 60,
+  "zone_capacities": {
+    "Z1": 10,
+    "Z2": 3,
+    "Z3": 12,
+    "Z4": 4
+  },
+  "capacity_source_warning": "Capacity values are marked unverified in pickup_zones.csv. Violations are exceedance samples against those provisional limits.",
+  "definitions": {
+    "approach_queue_vehicles": "Vehicles on E_APPROACH lanes with speed <= 0.1 m/s; interval value is the maximum one-second count.",
+    "zone_occupancy_vehicles": "Number of vehicles on the zone's designated lane at the final sample of each 60-second interval.",
+    "arrivals_vehicles": "Observed transition into the designated zone lane. A vehicle already on that lane in the first FCD sample is not counted as a new arrival.",
+    "departures_vehicles": "Observed transition out of the designated zone lane or disappearance from FCD while last observed in that zone.",
+    "zone_capacity_violations": "Count of one-second zone occupancy snapshots above the provisional capacity, summed across all zones.",
+    "spillback": "Unavailable: FCD stopped-vehicle counts do not alone prove physical spillback. Fields are left blank.",
+    "waiting_statistics": "FCD waiting attribute sampled per vehicle per second; interval statistics are sample-weighted, not unique-trip metrics."
+  },
+  "runs": [
+    {
+      "scenario_id": "baseline",
+      "run_id": "baseline_seed20261024",
+      "generated": 583,
+      "fcd_observed_unique_vehicles": 172,
+      "tripinfo_records": 172,
+      "completed_tripinfo_ids_observed_in_fcd": 97,
+      "unfinished_observed_vehicles": 75,
+      "fcd_timesteps": 3600,
+      "fcd_vehicle_samples": 228781,
+      "fcd_time_range": [
+        0,
+        3599
+      ],
+      "peak_approach_queue_vehicles": 48,
+      "peak_zone_occupancy_vehicles": 9,
+      "peak_occupancy_by_zone": {
+        "Z1": 9,
+        "Z3": 8,
+        "Z2": 5,
+        "Z4": 1
+      },
+      "capacity_exceedance_samples_by_zone": {
+        "Z2": 2560
+      },
+      "capacity_values_unverified": true,
+      "spillback_duration_seconds": "UNAVAILABLE"
+    },
+    {
+      "scenario_id": "uniform",
+      "run_id": "uniform_seed20261024",
+      "generated": 583,
+      "fcd_observed_unique_vehicles": 169,
+      "tripinfo_records": 169,
+      "completed_tripinfo_ids_observed_in_fcd": 96,
+      "unfinished_observed_vehicles": 73,
+      "fcd_timesteps": 3600,
+      "fcd_vehicle_samples": 201552,
+      "fcd_time_range": [
+        0,
+        3599
+      ],
+      "peak_approach_queue_vehicles": 45,
+      "peak_zone_occupancy_vehicles": 9,
+      "peak_occupancy_by_zone": {
+        "Z3": 8,
+        "Z1": 9,
+        "Z2": 5,
+        "Z4": 1
+      },
+      "capacity_exceedance_samples_by_zone": {
+        "Z2": 2379
+      },
+      "capacity_values_unverified": true,
+      "spillback_duration_seconds": "UNAVAILABLE"
+    },
+    {
+      "scenario_id": "optimized",
+      "run_id": "optimized_seed20261024",
+      "generated": 583,
+      "fcd_observed_unique_vehicles": 177,
+      "tripinfo_records": 177,
+      "completed_tripinfo_ids_observed_in_fcd": 114,
+      "unfinished_observed_vehicles": 63,
+      "fcd_timesteps": 3600,
+      "fcd_vehicle_samples": 239622,
+      "fcd_time_range": [
+        0,
+        3599
+      ],
+      "peak_approach_queue_vehicles": 44,
+      "peak_zone_occupancy_vehicles": 9,
+      "peak_occupancy_by_zone": {
+        "Z1": 9,
+        "Z3": 8,
+        "Z2": 6,
+        "Z4": 2
+      },
+      "capacity_exceedance_samples_by_zone": {
+        "Z2": 3094
+      },
+      "capacity_values_unverified": true,
+      "spillback_duration_seconds": "UNAVAILABLE"
+    },
+    {
+      "scenario_id": "stress_1_3x",
+      "run_id": "stress_1_3x_seed20261024",
+      "generated": 756,
+      "fcd_observed_unique_vehicles": 191,
+      "tripinfo_records": 191,
+      "completed_tripinfo_ids_observed_in_fcd": 110,
+      "unfinished_observed_vehicles": 81,
+      "fcd_timesteps": 3600,
+      "fcd_vehicle_samples": 270177,
+      "fcd_time_range": [
+        0,
+        3599
+      ],
+      "peak_approach_queue_vehicles": 51,
+      "peak_zone_occupancy_vehicles": 9,
+      "peak_occupancy_by_zone": {
+        "Z3": 8,
+        "Z1": 9,
+        "Z2": 5,
+        "Z4": 2
+      },
+      "capacity_exceedance_samples_by_zone": {
+        "Z2": 3092
+      },
+      "capacity_values_unverified": true,
+      "spillback_duration_seconds": "UNAVAILABLE"
+    }
+  ],
+  "summary_rows": 4,
+  "observation_rows": 960,
+  "expected_observation_rows": 960,
+  "schema_validation": "PASS",
+  "observation_row_count_validation": "PASS",
+  "final_audit": {
+    "audit_status": "STRUCTURAL_VALIDATION_PASS_WITH_DOCUMENTED_LIMITATIONS",
+    "completion_rate_definition": "vehicles_completed / vehicles_generated; this is generated-demand completion, not insertion-conditioned completion",
+    "additional_completion_metric": "vehicles_completed / vehicles_inserted; calculated separately for interpretation and not added to the CSV schema",
+    "vehicles_unfinished_definition": "observed vehicles not successfully completed in the captured run, including vaporized or otherwise incomplete vehicles",
+    "zone_capacity_violations_definition": "one-second occupancy samples above the provisional capacity, summed across zones; these are samples, not distinct violation events",
+    "zone_capacity_status": "UNVERIFIED_ASSUMPTIONS",
+    "spillback_status": "UNCONFIRMED",
+    "spillback_note": "Queue lengths approach the 178.50 m approach-lane length. Queue length or a 100 m proxy threshold alone does not establish physical spillback. Spillback fields remain blank.",
+    "queue_length_audit": {
+      "approach_lane_length_m": 178.5,
+      "standard_queue_length_maxima_m": {
+        "baseline": 178.36,
+        "uniform": 178.35,
+        "optimized": 178.19,
+        "stress_1_3x": 178.29
+      },
+      "source": "FINAL_HANDOFF_RATHI/lane_queue_observations.csv"
+    },
+    "capacity_exceedance_audit": {
+      "baseline": 2560,
+      "uniform": 2379,
+      "optimized": 3094,
+      "stress_1_3x": 3092
+    },
+    "interpretation_warning": "The optimized scenario has the highest generated-demand completion rate, but also higher mean and p95 waiting time and more provisional capacity-exceedance samples than baseline. Results are single-run comparisons and do not establish universal superiority.",
+    "network_geometry_warning": "Pickup-lane lengths are available, but no explicit parking-capacity definitions were found in the inspected network. Zone capacities remain provisional."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "dataset_name": "GateFlow AI synthetic school-gate traffic demo",
+  "dataset_version": "1.0.0",
+  "generation_timestamp_utc": "2026-10-24T08:17:24+00:00",
+  "generator_version": "1.0.0",
+  "random_seed": 42,
+  "simulation_period": {
+    "start": "2026-01-15T07:45:00+05:30",
+    "end": "2026-01-15T08:45:00+05:30"
+  },
+  "timezone": "Asia/Kolkata",
+  "units": {
+    "time": "seconds/minutes",
+    "distance": "metres",
+    "counts": "vehicles/students"
+  },
+  "record_counts": {
+    "data/raw/school_schedule.csv": 6,
+    "data/raw/traffic_observations.csv": 20,
+    "data/processed/vehicle_mix.csv": 5,
+    "data/raw/stopping_observations.csv": 120,
+    "data/processed/demand_profile.csv": 20,
+    "data/synthetic/synthetic_demand.csv": 134,
+    "data/synthetic/synthetic_trips.csv": 134
+  },
+  "classifications": {
+    "synthetic": "Generated fictional records, not measured observations.",
+    "assumed": "Configurable modelling inputs, not validated facts."
+  },
+  "generation_parameters": {
+    "simulation_duration_seconds": 3600,
+    "calibration_bin_minutes": 5,
+    "calibration_bins": 4,
+    "stopping_sample_target": 120,
+    "occupancy_model": "Normal around configured type mean; rounded, minimum 1 and capped at remaining group students.",
+    "schedule_arrival_model": "Normal offset mean 0 seconds, standard deviation 95 seconds; planned arrival 8 minutes before group bell.",
+    "uncertainty_sensitivity_range": "+/-20%, assumed and not statistical confidence.",
+    "zone_spacing_gap_m": {
+      "two_wheeler": 1,
+      "other": 2,
+      "bus": 3
+    }
+  },
+  "distribution_assumptions": {
+    "vehicle_shares": {
+      "car": 0.43,
+      "two_wheeler": 0.27,
+      "van": 0.1,
+      "bus": 0.08,
+      "auto_rickshaw": 0.12
+    },
+    "dwell_seconds": {
+      "car": {
+        "mean": 55,
+        "std": 18,
+        "normal_clipped_minimum": 1
+      },
+      "two_wheeler": {
+        "mean": 25,
+        "std": 9,
+        "normal_clipped_minimum": 1
+      },
+      "van": {
+        "mean": 75,
+        "std": 24,
+        "normal_clipped_minimum": 1
+      },
+      "bus": {
+        "mean": 110,
+        "std": 35,
+        "normal_clipped_minimum": 1
+      },
+      "auto_rickshaw": {
+        "mean": 35,
+        "std": 12,
+        "normal_clipped_minimum": 1
+      }
+    }
+  },
+  "known_limitations": [
+    "Entirely synthetic demonstration data; no field observations.",
+    "Fictional school and road topology; no real coordinates.",
+    "Zone legal status and safety are unverified.",
+    "No schedule optimizer has run; no candidate schedules or scores are asserted.",
+    "No SUMO network conversion or simulation has been run.",
+    "Calibration bins are generated examples, not measured calibration."
+  ],
+  "reproduction_command": "python datas/scripts/generate_synthetic_data.py --seed 42 --duration-seconds 3600 --output-directory datas",
+  "validation_status": "passed",
+  "validation_report": "data/synthetic/validation_report.json",
+  "sha256": {
+    "backend/scenarios/school_demo/network_spec.json": "2d60dab1311f8079322478bd61cfbc3afe5c19fda1a91e60b0db16213716bd30",
+    "backend/scenarios/school_demo/README.md": "66e6b221bc26b227b342a6f4371571353c52afe7fb8c87e18a1e8a4d8f799f8b",
+    "backend/scenarios/school_demo/school.sumocfg": "ea860b3145c7a218d25b4d0d0a76b380a847d86b490e8c91518c93aee833d648",
+    "data/processed/constraints.json": "894b439c05a56d045f2ae6d6391943f77d04c00afdf2eaecde4d2bf3f3bcc357",
+    "data/processed/demand_profile.csv": "476ebfd8f3b5aa78a61addaf64570c1df92f0cf89b55c92a176aca29f1dc665a",
+    "data/processed/pickup_zones.json": "4e93c7ce7dcad97d13cca1872d61217b2e5e9bae0b41a9f2c091bf0e99af7360",
+    "data/processed/school_config.json": "a77cf389b2e258daa6b20a67f51746fda0f0babdae50ae9baef3df6b81bb2913",
+    "data/processed/vehicle_mix.csv": "5eae208726feba4a539544d803184f7bc96f9e8f88e988765cf737cdc018b7d9",
+    "data/raw/school_schedule.csv": "b10a0a97d0c52906ca2f6f54db261ac0bf9f9b5334ca0cd968828ed81922972a",
+    "data/raw/stopping_observations.csv": "1e6b6db2f08f0c0ea5ec91326c5df15474a18f946bac7cb38e610f5acc6a6f68",
+    "data/raw/traffic_observations.csv": "4dda7d84318ac55b9d65bdd8789d908b34505303dc4db981328d3b0ed4ad84a8",
+    "data/schemas/data_dictionary.json": "6b46dc47269f7ae7887c06c8e3defb9db57c63a8e0f9c47876d8249c9293fee7",
+    "data/synthetic/synthetic_demand.csv": "80a35baae54ea540aa3bbc2607497331c19aab97895e1d6e6da2572111650357",
+    "data/synthetic/synthetic_scenarios.json": "d719fe4775572cbea05ce29b10ef39b15f4c85c935f7f36f5e18a501c42f4ba4",
+    "data/synthetic/synthetic_trips.csv": "9010debd503bb2b803a18170037237ed1fe9ab1f462401fb61e684c7f913a2b2",
+    "README.md": "b69206eb92851d63f378970d82c5b9c4607bed395b4b30ddb7e3cf20414a980c",
+    "requirements.txt": "d68fc0e371a729c2aae29a63d9dd8a8f29f46e2f9b52abe90e6b1a114f1043ea",
+    "results/README.md": "56ef0e4c7a4501a624a3ac474bce9081fbdf595e6f91e83c888ff2e5170b391d",
+    "results/simulation_results_schema.json": "b3692b99ddefd85fb36344345dd213cb6ffc389b897ff15e68329734a5d646f8",
+    "scripts/generate_synthetic_data.py": "5f3a1c1ac88f57e2727e999a499eea3ce5372d4253ec76611c735ca8419db116",
+    "scripts/validate_synthetic_data.py": "dea4ed6bb1a62f09c9de3ca558badc1308823426f5b1782a62df36eedec61cf3"
+  }
+}

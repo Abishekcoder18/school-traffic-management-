@@ -1,0 +1,56 @@
+{
+  "simulation_engine": "SUMO",
+  "simulation_status_allowed": [
+    "not_run",
+    "completed",
+    "failed"
+  ],
+  "records": [
+    {
+      "run_id": "diagnostic_20261024_seed_20261024",
+      "simulation_status": "completed",
+      "scenario": "synthetic_demand_on_fictional_network",
+      "source_file": "data/simulations/school_demo/diagnostic_tripinfo.xml",
+      "random_seed": 20261024,
+      "simulation_horizon_seconds": 3600,
+      "vehicles_generated": 583,
+      "trip_records_written": 172,
+      "vehicles_completed": 97,
+      "vehicles_unfinished": 75,
+      "completion_rate_of_generated_vehicles": 0.1664,
+      "unfinished_vaporized_at_simulation_end": 59,
+      "completed_mean_wait_seconds": 930.44,
+      "completed_mean_trip_duration_seconds": 1236.4,
+      "completed_mean_time_loss_seconds": 1101.16,
+      "averages_include_completed_trips_only": true,
+      "data_status": "synthetic_simulation_output",
+      "limitations": [
+        "Synthetic demand on a fictional network; not real-world observations.",
+        "The simulation ended with unfinished vehicles.",
+        "Only trips present in the SUMO tripinfo output are counted as trip records.",
+        "This is a diagnostic run, not a baseline-versus-optimized comparison."
+      ]
+    }
+  ],
+  "fields": {
+    "run_id": "string",
+    "simulation_status": "string",
+    "scenario": "string",
+    "source_file": "string",
+    "random_seed": "integer",
+    "simulation_horizon_seconds": "integer",
+    "vehicles_generated": "integer",
+    "trip_records_written": "integer",
+    "vehicles_completed": "integer",
+    "vehicles_unfinished": "integer",
+    "completion_rate_of_generated_vehicles": "number",
+    "unfinished_vaporized_at_simulation_end": "integer",
+    "completed_mean_wait_seconds": "number or null",
+    "completed_mean_trip_duration_seconds": "number or null",
+    "completed_mean_time_loss_seconds": "number or null",
+    "averages_include_completed_trips_only": "boolean",
+    "data_status": "string",
+    "limitations": "array of strings"
+  },
+  "notice": "One SUMO diagnostic run has been executed. Its results are from synthetic demand on a fictional network, not measured school traffic. The simulation run finished, but some vehicles remained unfinished. This output is a run-results record, not proof of optimization."
+}

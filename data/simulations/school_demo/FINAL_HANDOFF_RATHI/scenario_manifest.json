@@ -1,0 +1,49 @@
+{
+  "project": "GateFlow AI",
+  "scenario_id": "gateflow_school_demo",
+  "generated_at": "2026-10-24T21:37:42",
+  "network_type": "fictional synthetic SUMO network",
+  "baseline_start": "08:00",
+  "simulation_horizon_seconds": 3600,
+  "seed": 20261024,
+  "offset_options_minutes": [
+    -15,
+    -10,
+    -5,
+    0,
+    5,
+    10,
+    15
+  ],
+  "constraints": {
+    "G1_fixed_offset_minutes": 0,
+    "G3_G4_same_offset": true,
+    "G6_allowed_offsets_minutes": [
+      -5,
+      0,
+      5
+    ]
+  },
+  "uniform_benchmark_offsets": {
+    "G1": 0,
+    "G2": 5,
+    "G3": 10,
+    "G4": 10,
+    "G5": 15,
+    "G6": 5
+  },
+  "optimized_candidate_offsets": {
+    "G1": 0,
+    "G2": -10,
+    "G3": -5,
+    "G4": -5,
+    "G5": 10,
+    "G6": 5
+  },
+  "stress_demand_multiplier": 1.3,
+  "notes": [
+    "Synthetic demonstration only; not field-validated.",
+    "Optimized offsets are a planner-selected candidate, not proof of globally optimal SUMO performance.",
+    "Pickup-zone capacities are assumptions pending confirmation."
+  ]
+}

@@ -1,0 +1,220 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "SCN_NORMAL",
+      "scenario_name": "Normal demand",
+      "description": "Synthetic sensitivity scenario derived from SCN_NORMAL; normal demand is not a real-world observation.",
+      "base_scenario_id": null,
+      "random_seed": 42,
+      "demand_multiplier": 1.0,
+      "dwell_time_multiplier": 1.0,
+      "compliance_probability": 0.9,
+      "weather": "clear",
+      "parameter_overrides": {},
+      "data_status": "assumed"
+    },
+    {
+      "scenario_id": "SCN_SURGE20",
+      "scenario_name": "20% demand surge",
+      "description": "Synthetic sensitivity scenario derived from SCN_NORMAL; 20% demand surge is not a real-world observation.",
+      "base_scenario_id": "SCN_NORMAL",
+      "random_seed": 143,
+      "demand_multiplier": 1.2,
+      "dwell_time_multiplier": 1.0,
+      "compliance_probability": 0.9,
+      "weather": "clear",
+      "parameter_overrides": {
+        "rounding": "round half to nearest integer per calibration-bin vehicle type",
+        "calibration_count_transformations": [
+          {
+            "time_bin_start": "2026-01-15T08:00:00+05:30",
+            "vehicle_type": "auto_rickshaw",
+            "baseline_count": 7,
+            "adjusted_count": 8,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:00:00+05:30",
+            "vehicle_type": "bus",
+            "baseline_count": 8,
+            "adjusted_count": 10,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:00:00+05:30",
+            "vehicle_type": "car",
+            "baseline_count": 35,
+            "adjusted_count": 42,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:00:00+05:30",
+            "vehicle_type": "two_wheeler",
+            "baseline_count": 20,
+            "adjusted_count": 24,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:00:00+05:30",
+            "vehicle_type": "van",
+            "baseline_count": 9,
+            "adjusted_count": 11,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:05:00+05:30",
+            "vehicle_type": "auto_rickshaw",
+            "baseline_count": 13,
+            "adjusted_count": 16,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:05:00+05:30",
+            "vehicle_type": "bus",
+            "baseline_count": 10,
+            "adjusted_count": 12,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:05:00+05:30",
+            "vehicle_type": "car",
+            "baseline_count": 50,
+            "adjusted_count": 60,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:05:00+05:30",
+            "vehicle_type": "two_wheeler",
+            "baseline_count": 33,
+            "adjusted_count": 40,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:05:00+05:30",
+            "vehicle_type": "van",
+            "baseline_count": 12,
+            "adjusted_count": 14,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:10:00+05:30",
+            "vehicle_type": "auto_rickshaw",
+            "baseline_count": 18,
+            "adjusted_count": 22,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:10:00+05:30",
+            "vehicle_type": "bus",
+            "baseline_count": 13,
+            "adjusted_count": 16,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:10:00+05:30",
+            "vehicle_type": "car",
+            "baseline_count": 64,
+            "adjusted_count": 77,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:10:00+05:30",
+            "vehicle_type": "two_wheeler",
+            "baseline_count": 40,
+            "adjusted_count": 48,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:10:00+05:30",
+            "vehicle_type": "van",
+            "baseline_count": 15,
+            "adjusted_count": 18,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:15:00+05:30",
+            "vehicle_type": "auto_rickshaw",
+            "baseline_count": 12,
+            "adjusted_count": 14,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:15:00+05:30",
+            "vehicle_type": "bus",
+            "baseline_count": 9,
+            "adjusted_count": 11,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:15:00+05:30",
+            "vehicle_type": "car",
+            "baseline_count": 42,
+            "adjusted_count": 50,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:15:00+05:30",
+            "vehicle_type": "two_wheeler",
+            "baseline_count": 28,
+            "adjusted_count": 34,
+            "rounding_method": "round half up"
+          },
+          {
+            "time_bin_start": "2026-01-15T08:15:00+05:30",
+            "vehicle_type": "van",
+            "baseline_count": 9,
+            "adjusted_count": 11,
+            "rounding_method": "round half up"
+          }
+        ]
+      },
+      "data_status": "assumed"
+    },
+    {
+      "scenario_id": "SCN_LONG_DWELL",
+      "scenario_name": "Longer stopping durations",
+      "description": "Synthetic sensitivity scenario derived from SCN_NORMAL; longer stopping durations is not a real-world observation.",
+      "base_scenario_id": "SCN_NORMAL",
+      "random_seed": 244,
+      "demand_multiplier": 1.0,
+      "dwell_time_multiplier": 1.5,
+      "compliance_probability": 0.9,
+      "weather": "clear",
+      "parameter_overrides": {
+        "dwell_multiplier": 1.5
+      },
+      "data_status": "assumed"
+    },
+    {
+      "scenario_id": "SCN_LOW_COMPLIANCE",
+      "scenario_name": "Reduced schedule compliance",
+      "description": "Synthetic sensitivity scenario derived from SCN_NORMAL; reduced schedule compliance is not a real-world observation.",
+      "base_scenario_id": "SCN_NORMAL",
+      "random_seed": 345,
+      "demand_multiplier": 1.0,
+      "dwell_time_multiplier": 1.0,
+      "compliance_probability": 0.6,
+      "weather": "clear",
+      "parameter_overrides": {
+        "noncompliant_arrival_deviation_seconds": "normal(mean=240, sd=180), clipped to simulation bounds"
+      },
+      "data_status": "assumed"
+    },
+    {
+      "scenario_id": "SCN_RAIN_ASSUMED",
+      "scenario_name": "Rainy-day sensitivity",
+      "description": "Synthetic sensitivity scenario derived from SCN_NORMAL; rainy-day sensitivity is not a real-world observation.",
+      "base_scenario_id": "SCN_NORMAL",
+      "random_seed": 446,
+      "demand_multiplier": 1.05,
+      "dwell_time_multiplier": 1.25,
+      "compliance_probability": 0.75,
+      "weather": "rain_assumed",
+      "parameter_overrides": {
+        "arrival_offset_std_multiplier": 1.5,
+        "demand_change_is_assumed": true
+      },
+      "data_status": "assumed"
+    }
+  ]
+}

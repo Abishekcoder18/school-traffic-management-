@@ -1,0 +1,5 @@
+﻿zone_id,zone_name,capacity,allowed_vehicle_types,capacity_unit,assumption_source
+Z1,Main gate kerb,10,car;two_wheeler,vehicles,Project specification; capacity unit interpreted as simultaneous vehicles; unverified
+Z2,Side lane,3,car;two_wheeler;auto_van,vehicles,Project specification; capacity unit interpreted as simultaneous vehicles; unverified
+Z3,Rear lot,12,car;two_wheeler;auto_van,vehicles,Project specification; capacity unit interpreted as simultaneous vehicles; unverified
+Z4,Bus bay,4,bus,vehicles,Project specification; capacity unit interpreted as simultaneous vehicles; unverified

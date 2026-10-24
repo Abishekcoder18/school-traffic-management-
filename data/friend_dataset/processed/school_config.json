@@ -1,0 +1,125 @@
+{
+  "school_id": "SCH_SYN_001",
+  "school_name": "GateFlow Demonstration School",
+  "data_status": "synthetic",
+  "country": "India",
+  "timezone": "Asia/Kolkata",
+  "gate_id": "GATE_01",
+  "operating_period": {
+    "start": "2026-01-15T07:45:00+05:30",
+    "end": "2026-01-15T08:45:00+05:30"
+  },
+  "simulation_start_time": "2026-01-15T07:45:00+05:30",
+  "simulation_duration_seconds": 3600,
+  "simulation_step_seconds": 1,
+  "random_seed": 42,
+  "student_groups": [
+    {
+      "group_id": "G01",
+      "grade_label": "Primary A",
+      "student_count": 48,
+      "current_bell_time": "2026-01-15T08:05:00+05:30",
+      "earliest_time": "2026-01-15T07:55:00+05:30",
+      "latest_time": "2026-01-15T08:15:00+05:30",
+      "max_shift_minutes": 10,
+      "fixed_time": false,
+      "sibling_group_ids": [
+        "G02"
+      ],
+      "bus_required": false,
+      "data_status": "synthetic"
+    },
+    {
+      "group_id": "G02",
+      "grade_label": "Primary B",
+      "student_count": 56,
+      "current_bell_time": "2026-01-15T08:10:00+05:30",
+      "earliest_time": "2026-01-15T08:00:00+05:30",
+      "latest_time": "2026-01-15T08:20:00+05:30",
+      "max_shift_minutes": 10,
+      "fixed_time": false,
+      "sibling_group_ids": [
+        "G01"
+      ],
+      "bus_required": true,
+      "data_status": "synthetic"
+    },
+    {
+      "group_id": "G03",
+      "grade_label": "Middle A",
+      "student_count": 64,
+      "current_bell_time": "2026-01-15T08:15:00+05:30",
+      "earliest_time": "2026-01-15T08:00:00+05:30",
+      "latest_time": "2026-01-15T08:30:00+05:30",
+      "max_shift_minutes": 15,
+      "fixed_time": false,
+      "sibling_group_ids": [],
+      "bus_required": false,
+      "data_status": "synthetic"
+    },
+    {
+      "group_id": "G04",
+      "grade_label": "Middle B",
+      "student_count": 72,
+      "current_bell_time": "2026-01-15T08:20:00+05:30",
+      "earliest_time": "2026-01-15T08:05:00+05:30",
+      "latest_time": "2026-01-15T08:35:00+05:30",
+      "max_shift_minutes": 15,
+      "fixed_time": false,
+      "sibling_group_ids": [],
+      "bus_required": false,
+      "data_status": "synthetic"
+    },
+    {
+      "group_id": "G05",
+      "grade_label": "Senior A",
+      "student_count": 80,
+      "current_bell_time": "2026-01-15T08:25:00+05:30",
+      "earliest_time": "2026-01-15T08:15:00+05:30",
+      "latest_time": "2026-01-15T08:35:00+05:30",
+      "max_shift_minutes": 10,
+      "fixed_time": false,
+      "sibling_group_ids": [
+        "G06"
+      ],
+      "bus_required": true,
+      "data_status": "synthetic"
+    },
+    {
+      "group_id": "G06",
+      "grade_label": "Senior B",
+      "student_count": 88,
+      "current_bell_time": "2026-01-15T08:30:00+05:30",
+      "earliest_time": "2026-01-15T08:20:00+05:30",
+      "latest_time": "2026-01-15T08:40:00+05:30",
+      "max_shift_minutes": 10,
+      "fixed_time": false,
+      "sibling_group_ids": [
+        "G05"
+      ],
+      "bus_required": true,
+      "data_status": "synthetic"
+    }
+  ],
+  "candidate_pickup_zone_ids": [
+    "Z01",
+    "Z02",
+    "Z03",
+    "Z04"
+  ],
+  "road_network_id": "NET_SYN_001",
+  "vehicle_types": [
+    "car",
+    "two_wheeler",
+    "van",
+    "bus",
+    "auto_rickshaw"
+  ],
+  "default_demand_scenario": "SCN_NORMAL",
+  "dataset_version": "1.0.0",
+  "assumptions": {
+    "student_to_vehicle": "Allocate each group’s synthetic students across vehicles using the declared average occupancy; the final vehicle may be partially occupied.",
+    "vehicle_stopping_spacing_gap_m": "2 m for road vehicles, 1 m for two-wheelers, 3 m for buses.",
+    "times": "ISO 8601 local time with Asia/Kolkata offset."
+  }
+}

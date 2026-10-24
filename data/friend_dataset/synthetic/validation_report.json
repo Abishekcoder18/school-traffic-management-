@@ -1,0 +1,70 @@
+{
+  "overall_status": "PASS",
+  "validation_scope": "schemas, synthetic status, relationships, timing, capacities, scenarios, and deterministic RNG",
+  "simulation_execution": "not_run; results intentionally contain no actual simulator metrics",
+  "reproducibility_test": "PASS",
+  "distribution_summaries": {
+    "group_count": 6,
+    "vehicle_count": 134,
+    "stopping_records": 120,
+    "traffic_count_by_bin": {
+      "2026-01-15T08:00:00+05:30": 79,
+      "2026-01-15T08:05:00+05:30": 118,
+      "2026-01-15T08:10:00+05:30": 150,
+      "2026-01-15T08:15:00+05:30": 100
+    },
+    "vehicle_mix_share_sums": {
+      "SCN_NORMAL": 1.0
+    },
+    "dwell_seconds_min": 12,
+    "dwell_seconds_max": 141
+  },
+  "files": {
+    "data/raw/school_schedule.csv": {
+      "records": 6,
+      "missing_values": 0,
+      "duplicate_identifiers": {
+        "group_id": 0
+      }
+    },
+    "data/raw/traffic_observations.csv": {
+      "records": 20,
+      "missing_values": 0,
+      "duplicate_identifiers": {
+        "observation_id": 0
+      }
+    },
+    "data/raw/stopping_observations.csv": {
+      "records": 120,
+      "missing_values": 0,
+      "duplicate_identifiers": {
+        "stopping_id": 0
+      }
+    },
+    "data/processed/vehicle_mix.csv": {
+      "records": 5,
+      "missing_values": 0,
+      "duplicate_identifiers": {}
+    },
+    "data/processed/demand_profile.csv": {
+      "records": 20,
+      "missing_values": 0,
+      "duplicate_identifiers": {}
+    },
+    "data/synthetic/synthetic_demand.csv": {
+      "records": 134,
+      "missing_values": 0,
+      "duplicate_identifiers": {
+        "vehicle_id": 0
+      }
+    },
+    "data/synthetic/synthetic_trips.csv": {
+      "records": 134,
+      "missing_values": 0,
+      "duplicate_identifiers": {
+        "vehicle_id": 0
+      }
+    }
+  },
+  "issues": []
+}

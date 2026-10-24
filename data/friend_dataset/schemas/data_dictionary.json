@@ -1,0 +1,1644 @@
+{
+  "dataset": "GateFlow AI synthetic school-gate demo",
+  "records": {
+    "school_config.json": "Configuration JSON; student_groups[].current_bell_time etc. are ISO 8601 with timezone; counts are students; seed is integer.",
+    "pickup_zones.json": "Zone objects include length in metres, capacities in vehicles by type, time windows as local HH:MM:SS, flags boolean.",
+    "constraints.json": "constraint_type is hard|soft; references group and zone IDs; parameters are JSON objects.",
+    "synthetic_scenarios.json": "scenario_id unique; multipliers are dimensionless; compliance_probability is [0,1]; random_seed integer.",
+    "data_dictionary.json": "Defines file field names, types, units, allowed values, nullability, and relationships."
+  },
+  "files": {
+    "data/raw/school_schedule.csv": {
+      "group_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References school_config.json student_groups[].group_id."
+      },
+      "student_count": {
+        "type": "integer",
+        "unit": "students",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "current_bell_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "earliest_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "latest_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "max_shift_minutes": {
+        "type": "integer",
+        "unit": "minutes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "fixed_time": {
+        "type": "boolean",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "bus_required": {
+        "type": "boolean",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    },
+    "data/raw/traffic_observations.csv": {
+      "observation_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "scenario_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "SCN_NORMAL",
+          "SCN_SURGE20",
+          "SCN_LONG_DWELL",
+          "SCN_LOW_COMPLIANCE",
+          "SCN_RAIN_ASSUMED"
+        ],
+        "nullable": false,
+        "relationship": "References synthetic_scenarios.json scenarios[].scenario_id."
+      },
+      "time_bin_start": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "time_bin_end": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "approach_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "vehicle_type": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "Uses the vehicle categories in school_config.json vehicle_types."
+      },
+      "vehicle_count": {
+        "type": "integer",
+        "unit": "vehicles",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "weather": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "disruption_flag": {
+        "type": "boolean",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "disruption_description": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    },
+    "data/processed/vehicle_mix.csv": {
+      "scenario_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "SCN_NORMAL",
+          "SCN_SURGE20",
+          "SCN_LONG_DWELL",
+          "SCN_LOW_COMPLIANCE",
+          "SCN_RAIN_ASSUMED"
+        ],
+        "nullable": false,
+        "relationship": "References synthetic_scenarios.json scenarios[].scenario_id."
+      },
+      "vehicle_type": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "Uses the vehicle categories in school_config.json vehicle_types."
+      },
+      "vehicle_share": {
+        "type": "number",
+        "unit": "proportion [0,1]",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "average_vehicle_length_m": {
+        "type": "number",
+        "unit": "metres",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "average_occupancy": {
+        "type": "number",
+        "unit": "persons/vehicle",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "average_dwell_seconds": {
+        "type": "number",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "dwell_std_seconds": {
+        "type": "number",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    },
+    "data/raw/stopping_observations.csv": {
+      "stopping_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "vehicle_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "Links synthetic_demand.csv, synthetic_trips.csv, and stopping_observations.csv where present."
+      },
+      "vehicle_type": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "Uses the vehicle categories in school_config.json vehicle_types."
+      },
+      "arrival_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "stop_duration_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "pickup_zone_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References pickup_zones.json zones[].zone_id."
+      },
+      "approach_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "queue_entry_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "queue_wait_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "group_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References school_config.json student_groups[].group_id."
+      },
+      "scenario_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "SCN_NORMAL",
+          "SCN_SURGE20",
+          "SCN_LONG_DWELL",
+          "SCN_LOW_COMPLIANCE",
+          "SCN_RAIN_ASSUMED"
+        ],
+        "nullable": false,
+        "relationship": "References synthetic_scenarios.json scenarios[].scenario_id."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    },
+    "data/processed/demand_profile.csv": {
+      "scenario_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "SCN_NORMAL",
+          "SCN_SURGE20",
+          "SCN_LONG_DWELL",
+          "SCN_LOW_COMPLIANCE",
+          "SCN_RAIN_ASSUMED"
+        ],
+        "nullable": false,
+        "relationship": "References synthetic_scenarios.json scenarios[].scenario_id."
+      },
+      "time_bin_start": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "time_bin_end": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "approach_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "vehicle_type": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "Uses the vehicle categories in school_config.json vehicle_types."
+      },
+      "vehicle_count": {
+        "type": "integer",
+        "unit": "vehicles",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "arrival_rate_per_minute": {
+        "type": "number",
+        "unit": "vehicles/minute",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "estimated_vehicle_share": {
+        "type": "number",
+        "unit": "proportion [0,1]",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "uncertainty_low": {
+        "type": "number",
+        "unit": "vehicles/minute",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "uncertainty_high": {
+        "type": "number",
+        "unit": "vehicles/minute",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "estimation_method": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    },
+    "data/synthetic/synthetic_demand.csv": {
+      "vehicle_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "Links synthetic_demand.csv, synthetic_trips.csv, and stopping_observations.csv where present."
+      },
+      "scenario_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "SCN_NORMAL",
+          "SCN_SURGE20",
+          "SCN_LONG_DWELL",
+          "SCN_LOW_COMPLIANCE",
+          "SCN_RAIN_ASSUMED"
+        ],
+        "nullable": false,
+        "relationship": "References synthetic_scenarios.json scenarios[].scenario_id."
+      },
+      "group_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References school_config.json student_groups[].group_id."
+      },
+      "vehicle_type": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "Uses the vehicle categories in school_config.json vehicle_types."
+      },
+      "approach_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "planned_arrival_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "actual_arrival_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "arrival_offset_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "occupancy": {
+        "type": "number",
+        "unit": "persons/vehicle",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "vehicle_length_m": {
+        "type": "number",
+        "unit": "metres",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "dwell_duration_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "preferred_zone_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References pickup_zones.json zones[].zone_id."
+      },
+      "assigned_zone_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References pickup_zones.json zones[].zone_id."
+      },
+      "schedule_compliance": {
+        "type": "boolean",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    },
+    "data/synthetic/synthetic_trips.csv": {
+      "vehicle_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "Links synthetic_demand.csv, synthetic_trips.csv, and stopping_observations.csv where present."
+      },
+      "scenario_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "SCN_NORMAL",
+          "SCN_SURGE20",
+          "SCN_LONG_DWELL",
+          "SCN_LOW_COMPLIANCE",
+          "SCN_RAIN_ASSUMED"
+        ],
+        "nullable": false,
+        "relationship": "References synthetic_scenarios.json scenarios[].scenario_id."
+      },
+      "vehicle_type": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "Uses the vehicle categories in school_config.json vehicle_types."
+      },
+      "departure_time_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "origin_edge_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "destination_edge_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "route_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "assigned_zone_id": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "References pickup_zones.json zones[].zone_id."
+      },
+      "dwell_duration_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "No foreign-key relationship."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "dimensionless",
+        "allowed_values": [
+          "synthetic",
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "Classifies this value as synthetic or assumed."
+      }
+    }
+  },
+  "json_fields": {
+    "data/processed/school_config.json": {
+      "school_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": [
+          "SCH_SYN_001"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "school_name": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "synthetic"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "country": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "India"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "timezone": {
+        "type": "string",
+        "unit": "IANA timezone",
+        "allowed_values": [
+          "Asia/Kolkata"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "gate_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "operating_period.start": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "operating_period.end": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "simulation_start_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "simulation_duration_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "simulation_step_seconds": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "random_seed": {
+        "type": "integer",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[]": {
+        "type": "array",
+        "unit": "student groups",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].group_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].grade_label": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].student_count": {
+        "type": "integer",
+        "unit": "students",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].current_bell_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].earliest_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].latest_time": {
+        "type": "string",
+        "unit": "ISO 8601 local timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].max_shift_minutes": {
+        "type": "integer",
+        "unit": "minutes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].fixed_time": {
+        "type": "boolean",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].sibling_group_ids": {
+        "type": "array",
+        "unit": "group identifiers",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].bus_required": {
+        "type": "boolean",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "student_groups[].data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "synthetic"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "candidate_pickup_zone_ids": {
+        "type": "array",
+        "unit": "zone identifiers",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "road_network_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "vehicle_types": {
+        "type": "array",
+        "unit": "vehicle categories",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "default_demand_scenario": {
+        "type": "string",
+        "unit": "scenario identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "dataset_version": {
+        "type": "string",
+        "unit": "semantic version",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "assumptions": {
+        "type": "object",
+        "unit": "modelling notes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "data/processed/pickup_zones.json": {
+      "data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "safety_notice": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[]": {
+        "type": "array",
+        "unit": "zones",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].zone_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].zone_name": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].road_segment_id": {
+        "type": "string",
+        "unit": "edge identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].usable_length_m": {
+        "type": "number",
+        "unit": "metres",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].allowed_vehicle_types": {
+        "type": "array",
+        "unit": "vehicle categories",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].estimated_capacity_by_vehicle_type": {
+        "type": "object",
+        "unit": "vehicles by vehicle type",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].entry_time_window.start": {
+        "type": "string",
+        "unit": "local time",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].entry_time_window.end": {
+        "type": "string",
+        "unit": "local time",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].exit_time_window.start": {
+        "type": "string",
+        "unit": "local time",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].exit_time_window.end": {
+        "type": "string",
+        "unit": "local time",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].pedestrian_conflict_flag": {
+        "type": "boolean",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].emergency_access_conflict_flag": {
+        "type": "boolean",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].legal_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "unverified"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].verification_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "not_verified"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].capacity_method": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "zones[].data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "data/processed/constraints.json": {
+      "offset_candidates_minutes": {
+        "type": "array",
+        "unit": "minutes",
+        "allowed_values": [
+          -15,
+          -10,
+          -5,
+          0,
+          5,
+          10,
+          15
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "unconstrained_candidate_count": {
+        "type": "integer",
+        "unit": "schedule combinations",
+        "allowed_values": [
+          117649
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "hard_constraints_are_never_relaxed": {
+        "type": "boolean",
+        "unit": "none",
+        "allowed_values": [
+          true
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[]": {
+        "type": "array",
+        "unit": "constraints",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].constraint_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].constraint_type": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "hard",
+          "soft"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].constraint_category": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].affected_group_ids": {
+        "type": "array",
+        "unit": "group identifiers",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].affected_zone_ids": {
+        "type": "array",
+        "unit": "zone identifiers",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].parameters": {
+        "type": "object",
+        "unit": "constraint parameters",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].description": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "constraints[].data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "data/synthetic/synthetic_scenarios.json": {
+      "scenarios[]": {
+        "type": "array",
+        "unit": "scenarios",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].scenario_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].scenario_name": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].description": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].base_scenario_id": {
+        "type": "string|null",
+        "unit": "scenario identifier",
+        "allowed_values": null,
+        "nullable": true,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].random_seed": {
+        "type": "integer",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].demand_multiplier": {
+        "type": "number",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].dwell_time_multiplier": {
+        "type": "number",
+        "unit": "dimensionless",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].compliance_probability": {
+        "type": "number",
+        "unit": "probability [0,1]",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].weather": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].parameter_overrides": {
+        "type": "object",
+        "unit": "scenario parameters",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "scenarios[].data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "backend/scenarios/school_demo/network_spec.json": {
+      "network_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "data_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "assumed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "notice": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "nodes[]": {
+        "type": "array",
+        "unit": "network nodes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "nodes[].node_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "nodes[].type": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[]": {
+        "type": "array",
+        "unit": "network edges",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].edge_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].from": {
+        "type": "string",
+        "unit": "node identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].to": {
+        "type": "string",
+        "unit": "node identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].lanes": {
+        "type": "integer",
+        "unit": "lanes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].length_m": {
+        "type": "number",
+        "unit": "metres",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].speed_limit_mps": {
+        "type": "number",
+        "unit": "metres/second",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "edges[].direction": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "routes[]": {
+        "type": "array",
+        "unit": "routes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "routes[].route_id": {
+        "type": "string",
+        "unit": "identifier",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "routes[].edges": {
+        "type": "array",
+        "unit": "edge identifiers",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "vehicle_types": {
+        "type": "array",
+        "unit": "vehicle categories",
+        "allowed_values": [
+          "car",
+          "two_wheeler",
+          "van",
+          "bus",
+          "auto_rickshaw"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "sumo_conversion_notes": {
+        "type": "array",
+        "unit": "notes",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "results/simulation_results_schema.json": {
+      "simulation_engine": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "SUMO"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "simulation_status_allowed": {
+        "type": "array",
+        "unit": "status values",
+        "allowed_values": [
+          "not_run",
+          "completed",
+          "failed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "records": {
+        "type": "array",
+        "unit": "actual simulator run records; empty unless executed",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "fields": {
+        "type": "object",
+        "unit": "run-result field names and types",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "notice": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "data/synthetic/synthetic_dataset_metadata.json": {
+      "dataset_name": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "dataset_version": {
+        "type": "string",
+        "unit": "semantic version",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "generation_timestamp_utc": {
+        "type": "string",
+        "unit": "ISO 8601 UTC timestamp",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "generator_version": {
+        "type": "string",
+        "unit": "semantic version",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "random_seed": {
+        "type": "integer",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "simulation_period": {
+        "type": "object",
+        "unit": "ISO 8601 local timestamps",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "timezone": {
+        "type": "string",
+        "unit": "IANA timezone",
+        "allowed_values": [
+          "Asia/Kolkata"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "units": {
+        "type": "object",
+        "unit": "unit definitions",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "record_counts": {
+        "type": "object",
+        "unit": "records per CSV",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "classifications": {
+        "type": "object",
+        "unit": "synthetic and assumed data definitions",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "generation_parameters": {
+        "type": "object",
+        "unit": "generation assumptions",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "distribution_assumptions": {
+        "type": "object",
+        "unit": "vehicle and dwell assumptions",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "known_limitations": {
+        "type": "array",
+        "unit": "limitations",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "reproduction_command": {
+        "type": "string",
+        "unit": "command line",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "validation_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "pending",
+          "passed",
+          "failed"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "validation_report": {
+        "type": "string",
+        "unit": "relative file path",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "sha256": {
+        "type": "object",
+        "unit": "SHA-256 hex digests by relative file path",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "backend/scenarios/school_demo/school.sumocfg": {
+      "configuration": {
+        "type": "XML element",
+        "unit": "SUMO configuration template",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "input.net-file": {
+        "type": "string",
+        "unit": "relative network XML filename; generated by netconvert",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "input.route-files": {
+        "type": "string",
+        "unit": "relative route XML filename; requires route conversion",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "time.begin": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "time.end": {
+        "type": "integer",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "time.step-length": {
+        "type": "number",
+        "unit": "seconds",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    },
+    "data/synthetic/validation_report.json": {
+      "overall_status": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "PASS",
+          "FAIL"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "validation_scope": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "simulation_execution": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "not_run"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "reproducibility_test": {
+        "type": "string",
+        "unit": "none",
+        "allowed_values": [
+          "PASS",
+          "FAIL"
+        ],
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "distribution_summaries": {
+        "type": "object",
+        "unit": "summary statistics",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "files": {
+        "type": "object",
+        "unit": "per-file records, missing values, and duplicate identifiers",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      },
+      "issues": {
+        "type": "array",
+        "unit": "validation errors with affected records",
+        "allowed_values": null,
+        "nullable": false,
+        "relationship": "See the field path; identifiers link to the corresponding group, zone, scenario, node, or edge dataset where applicable."
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+﻿check,status,detail
+diagnostic_vehicle_demand.csv exists,PASS,E:\School_Traffic_Management\data\simulations\school_demo\analysis\diagnostic_vehicle_demand.csv
+diagnostic_vehicle_demand.csv headers,PASS,"Expected ['vehicle_id', 'depart_seconds', 'vehicle_type', 'zone_id', 'dwell_seconds', 'route_edges', 'source_file', 'seed']; got ['vehicle_id', 'depart_seconds', 'vehicle_type', 'zone_id', 'dwell_seconds', 'route_edges', 'source_file', 'seed']"
+diagnostic_vehicle_results.csv exists,PASS,E:\School_Traffic_Management\data\simulations\school_demo\analysis\diagnostic_vehicle_results.csv
+diagnostic_vehicle_results.csv headers,PASS,"Expected ['vehicle_id', 'vehicle_type', 'depart_seconds', 'arrival_seconds', 'completed', 'duration_seconds', 'waiting_seconds', 'time_loss_seconds', 'stop_seconds', 'vaporized']; got ['vehicle_id', 'vehicle_type', 'depart_seconds', 'arrival_seconds', 'completed', 'duration_seconds', 'waiting_seconds', 'time_loss_seconds', 'stop_seconds', 'vaporized']"
+simulation_run_summary.csv exists,PASS,E:\School_Traffic_Management\data\simulations\school_demo\analysis\simulation_run_summary.csv
+simulation_run_summary.csv headers,PASS,"Expected ['scenario_id', 'run_id', 'plan_type', 'demand_multiplier', 'seed', 'simulation_horizon_seconds', 'vehicles_generated', 'vehicles_inserted', 'vehicles_completed', 'vehicles_unfinished', 'completion_rate', 'mean_wait_seconds', 'p95_wait_seconds', 'mean_trip_duration_seconds', 'mean_time_loss_seconds', 'peak_approach_queue_vehicles', 'peak_zone_occupancy_vehicles', 'spillback_duration_seconds', 'zone_capacity_violations', 'source_engine', 'validation_status']; got ['scenario_id', 'run_id', 'plan_type', 'demand_multiplier', 'seed', 'simulation_horizon_seconds', 'vehicles_generated', 'vehicles_inserted', 'vehicles_completed', 'vehicles_unfinished', 'completion_rate', 'mean_wait_seconds', 'p95_wait_seconds', 'mean_trip_duration_seconds', 'mean_time_loss_seconds', 'peak_approach_queue_vehicles', 'peak_zone_occupancy_vehicles', 'spillback_duration_seconds', 'zone_capacity_violations', 'source_engine', 'validation_status']"
+traffic_observations.csv exists,PASS,E:\School_Traffic_Management\data\simulations\school_demo\analysis\traffic_observations.csv
+traffic_observations.csv headers,PASS,"Expected ['scenario_id', 'run_id', 'timestamp_seconds', 'interval_seconds', 'approach_queue_vehicles', 'zone_id', 'zone_occupancy_vehicles', 'arrivals_vehicles', 'departures_vehicles', 'mean_wait_seconds', 'p95_wait_seconds', 'spillback_detected', 'source_engine', 'source_file', 'seed']; got ['scenario_id', 'run_id', 'timestamp_seconds', 'interval_seconds', 'approach_queue_vehicles', 'zone_id', 'zone_occupancy_vehicles', 'arrivals_vehicles', 'departures_vehicles', 'mean_wait_seconds', 'p95_wait_seconds', 'spillback_detected', 'source_engine', 'source_file', 'seed']"
+Demand row count,PASS,583 rows
+Demand IDs unique and populated,PASS,583 unique IDs
+Demand routes populated,PASS,Every vehicle has route edges
+Demand zones valid,PASS,Every vehicle maps to a known zone
+Demand departure times valid,PASS,No blank departures
+Vehicle types recognized,PASS,Only canonical vehicle types found
+Result IDs unique,PASS,172 result records
+Results reconcile,PASS,"97 completed, 75 unfinished, 172 total"
+One summary row,PASS,1 rows
+Summary matches this diagnostic run,PASS,Generated/completed/unfinished/source values checked
+Summary remains honestly incomplete,PASS,Status is INCOMPLETE
+Observations not fabricated,PASS,0 rows; detector time-series data unavailable

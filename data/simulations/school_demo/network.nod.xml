@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<nodes>
+    <node id="N_WEST" x="0" y="0" type="priority"/>
+    <node id="N_JUNCTION" x="180" y="0" type="priority"/>
+    <node id="N_GATE" x="275" y="0" type="priority"/>
+    <node id="N_EAST" x="435" y="0" type="priority"/>
+    <node id="N_ZONE_1" x="310" y="35" type="priority"/>
+    <node id="N_ZONE_2" x="315" y="-35" type="priority"/>
+    <node id="N_ZONE_3" x="295" y="65" type="priority"/>
+    <node id="N_BUS" x="300" y="-65" type="priority"/>
+</nodes>

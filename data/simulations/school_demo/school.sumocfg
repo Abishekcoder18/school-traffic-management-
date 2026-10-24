@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Template only: run netconvert and generate route XML before SUMO execution. -->
+    <input><net-file value="network.net.xml"/><route-files value="synthetic_trips.rou.xml"/></input>
+    <time><begin value="0"/><end value="3600"/><step-length value="1"/></time>
+</configuration>

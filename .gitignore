@@ -1,0 +1,70 @@
+﻿# Python environments and generated files
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets and local environment configuration
+.env
+.env.*
+!.env.example
+
+# Node and frontend build output
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Local editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local backups
+backups/
+
+# Generated high-volume SUMO outputs
+data/simulations/school_demo/experiment_fcd/
+data/simulations/school_demo/experiment_runs/
+data/simulations/school_demo/experiment_diagnostics/
+
+# Reproducible dataset archives; keep the extracted handoff files
+data/simulations/school_demo/*.zip
+
+# Temporary output and backup copies
+*.log
+*.tmp
+*.backup
+*.friend-backup
+
+# Historical handoff backups
+data/simulations/school_demo/handoff_docs_backup_*/
+
+# Temporary or empty accidental file
+backend/0
+
+# Generated simulation artifacts; keep network/configuration inputs
+data/simulations/school_demo/diagnostic_demand.rou.xml
+data/simulations/school_demo/diagnostic_stderr.txt
+data/simulations/school_demo/diagnostic_tripinfo.xml
+data/simulations/school_demo/smoke-rerun.tripinfo.xml
+data/simulations/school_demo/smoke.rou.xml
+data/simulations/school_demo/smoke.tripinfo.xml
+data/simulations/school_demo/last_run_metrics.json
+data/simulations/school_demo/validated_diagnostic_summary.json
+data/simulations/school_demo/analysis/
+sumo_smoke_test/summary.xml
+sumo_smoke_test/tripinfo.xml
+
+# Assistant-specific local tooling; review before sharing
+.agents/
+
+# Existing frontend; replacement will be integrated separately
+/frontend/

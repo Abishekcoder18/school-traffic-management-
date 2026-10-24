@@ -1,0 +1,367 @@
+{
+  "offset_candidates_minutes": [
+    -15,
+    -10,
+    -5,
+    0,
+    5,
+    10,
+    15
+  ],
+  "unconstrained_candidate_count": 117649,
+  "constraints": [
+    {
+      "constraint_id": "C_TIME_G01",
+      "constraint_type": "hard",
+      "constraint_category": "schedule_bounds",
+      "affected_group_ids": [
+        "G01"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "earliest_time": "2026-01-15T07:55:00+05:30",
+        "latest_time": "2026-01-15T08:15:00+05:30",
+        "max_shift_minutes": 10,
+        "fixed_time": false,
+        "current_bell_time": "2026-01-15T08:05:00+05:30"
+      },
+      "description": "Bell time must remain within bounds; fixed groups cannot move.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_SIB_G01",
+      "constraint_type": "soft",
+      "constraint_category": "sibling_coordination",
+      "affected_group_ids": [
+        "G01",
+        "G02"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "max_separation_minutes": 10
+      },
+      "description": "Keep sibling group bell times within ten minutes where feasible.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_TIME_G02",
+      "constraint_type": "hard",
+      "constraint_category": "schedule_bounds",
+      "affected_group_ids": [
+        "G02"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "earliest_time": "2026-01-15T08:00:00+05:30",
+        "latest_time": "2026-01-15T08:20:00+05:30",
+        "max_shift_minutes": 10,
+        "fixed_time": false,
+        "current_bell_time": "2026-01-15T08:10:00+05:30"
+      },
+      "description": "Bell time must remain within bounds; fixed groups cannot move.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_BUS_G02",
+      "constraint_type": "hard",
+      "constraint_category": "bus_access",
+      "affected_group_ids": [
+        "G02"
+      ],
+      "affected_zone_ids": [
+        "Z04"
+      ],
+      "parameters": {
+        "bus_zone_id": "Z04",
+        "required": true
+      },
+      "description": "School buses serving this group must use the designated, unverified bus bay.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_SIB_G02",
+      "constraint_type": "soft",
+      "constraint_category": "sibling_coordination",
+      "affected_group_ids": [
+        "G02",
+        "G01"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "max_separation_minutes": 10
+      },
+      "description": "Keep sibling group bell times within ten minutes where feasible.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_TIME_G03",
+      "constraint_type": "hard",
+      "constraint_category": "schedule_bounds",
+      "affected_group_ids": [
+        "G03"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "earliest_time": "2026-01-15T08:00:00+05:30",
+        "latest_time": "2026-01-15T08:30:00+05:30",
+        "max_shift_minutes": 15,
+        "fixed_time": false,
+        "current_bell_time": "2026-01-15T08:15:00+05:30"
+      },
+      "description": "Bell time must remain within bounds; fixed groups cannot move.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_TIME_G04",
+      "constraint_type": "hard",
+      "constraint_category": "schedule_bounds",
+      "affected_group_ids": [
+        "G04"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "earliest_time": "2026-01-15T08:05:00+05:30",
+        "latest_time": "2026-01-15T08:35:00+05:30",
+        "max_shift_minutes": 15,
+        "fixed_time": false,
+        "current_bell_time": "2026-01-15T08:20:00+05:30"
+      },
+      "description": "Bell time must remain within bounds; fixed groups cannot move.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_TIME_G05",
+      "constraint_type": "hard",
+      "constraint_category": "schedule_bounds",
+      "affected_group_ids": [
+        "G05"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "earliest_time": "2026-01-15T08:15:00+05:30",
+        "latest_time": "2026-01-15T08:35:00+05:30",
+        "max_shift_minutes": 10,
+        "fixed_time": false,
+        "current_bell_time": "2026-01-15T08:25:00+05:30"
+      },
+      "description": "Bell time must remain within bounds; fixed groups cannot move.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_BUS_G05",
+      "constraint_type": "hard",
+      "constraint_category": "bus_access",
+      "affected_group_ids": [
+        "G05"
+      ],
+      "affected_zone_ids": [
+        "Z04"
+      ],
+      "parameters": {
+        "bus_zone_id": "Z04",
+        "required": true
+      },
+      "description": "School buses serving this group must use the designated, unverified bus bay.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_SIB_G05",
+      "constraint_type": "soft",
+      "constraint_category": "sibling_coordination",
+      "affected_group_ids": [
+        "G05",
+        "G06"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "max_separation_minutes": 10
+      },
+      "description": "Keep sibling group bell times within ten minutes where feasible.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_TIME_G06",
+      "constraint_type": "hard",
+      "constraint_category": "schedule_bounds",
+      "affected_group_ids": [
+        "G06"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "earliest_time": "2026-01-15T08:20:00+05:30",
+        "latest_time": "2026-01-15T08:40:00+05:30",
+        "max_shift_minutes": 10,
+        "fixed_time": false,
+        "current_bell_time": "2026-01-15T08:30:00+05:30"
+      },
+      "description": "Bell time must remain within bounds; fixed groups cannot move.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_BUS_G06",
+      "constraint_type": "hard",
+      "constraint_category": "bus_access",
+      "affected_group_ids": [
+        "G06"
+      ],
+      "affected_zone_ids": [
+        "Z04"
+      ],
+      "parameters": {
+        "bus_zone_id": "Z04",
+        "required": true
+      },
+      "description": "School buses serving this group must use the designated, unverified bus bay.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_SIB_G06",
+      "constraint_type": "soft",
+      "constraint_category": "sibling_coordination",
+      "affected_group_ids": [
+        "G06",
+        "G05"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "max_separation_minutes": 10
+      },
+      "description": "Keep sibling group bell times within ten minutes where feasible.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_ZONE_Z01",
+      "constraint_type": "hard",
+      "constraint_category": "vehicle_zone_access",
+      "affected_group_ids": [],
+      "affected_zone_ids": [
+        "Z01"
+      ],
+      "parameters": {
+        "allowed_vehicle_types": [
+          "car",
+          "two_wheeler",
+          "auto_rickshaw"
+        ],
+        "capacity_by_vehicle_type": {
+          "car": 5,
+          "two_wheeler": 12,
+          "auto_rickshaw": 7
+        },
+        "prohibited_zone_assignments": []
+      },
+      "description": "Respect configured vehicle compatibility and estimated capacity; legal use remains unverified.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_ZONE_Z02",
+      "constraint_type": "hard",
+      "constraint_category": "vehicle_zone_access",
+      "affected_group_ids": [],
+      "affected_zone_ids": [
+        "Z02"
+      ],
+      "parameters": {
+        "allowed_vehicle_types": [
+          "car",
+          "van",
+          "two_wheeler",
+          "auto_rickshaw"
+        ],
+        "capacity_by_vehicle_type": {
+          "car": 7,
+          "van": 6,
+          "two_wheeler": 16,
+          "auto_rickshaw": 9
+        },
+        "prohibited_zone_assignments": []
+      },
+      "description": "Respect configured vehicle compatibility and estimated capacity; legal use remains unverified.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_ZONE_Z03",
+      "constraint_type": "hard",
+      "constraint_category": "vehicle_zone_access",
+      "affected_group_ids": [],
+      "affected_zone_ids": [
+        "Z03"
+      ],
+      "parameters": {
+        "allowed_vehicle_types": [
+          "car",
+          "two_wheeler",
+          "van",
+          "auto_rickshaw"
+        ],
+        "capacity_by_vehicle_type": {
+          "car": 4,
+          "two_wheeler": 10,
+          "van": 3,
+          "auto_rickshaw": 6
+        },
+        "prohibited_zone_assignments": []
+      },
+      "description": "Respect configured vehicle compatibility and estimated capacity; legal use remains unverified.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_ZONE_Z04",
+      "constraint_type": "hard",
+      "constraint_category": "vehicle_zone_access",
+      "affected_group_ids": [],
+      "affected_zone_ids": [
+        "Z04"
+      ],
+      "parameters": {
+        "allowed_vehicle_types": [
+          "bus",
+          "van"
+        ],
+        "capacity_by_vehicle_type": {
+          "bus": 2,
+          "van": 5
+        },
+        "prohibited_zone_assignments": []
+      },
+      "description": "Respect configured vehicle compatibility and estimated capacity; legal use remains unverified.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_SEPARATION_G03_G04",
+      "constraint_type": "hard",
+      "constraint_category": "minimum_separation",
+      "affected_group_ids": [
+        "G03",
+        "G04"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "minimum_separation_minutes": 5
+      },
+      "description": "Keep the configured middle groups at least five minutes apart.",
+      "data_status": "assumed"
+    },
+    {
+      "constraint_id": "C_DISRUPTION",
+      "constraint_type": "soft",
+      "constraint_category": "schedule_disruption",
+      "affected_group_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06"
+      ],
+      "affected_zone_ids": [],
+      "parameters": {
+        "objective": "minimize sum(student_count * abs(shift_minutes))",
+        "unit": "student-minute proxy"
+      },
+      "description": "Prefer less schedule disruption; this is not a count of affected families.",
+      "data_status": "assumed"
+    }
+  ],
+  "hard_constraints_are_never_relaxed": true
+}

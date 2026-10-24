@@ -1,0 +1,5 @@
+﻿scenario_id,observed_lane_records,approach_lane_records,pickup_zone_lane_records,peak_approach_queue_length_m,peak_approach_queue_timestamp_seconds,peak_approach_lane_id,peak_pickup_zone_queue_length_m,peak_pickup_zone_queue_timestamp_seconds,peak_pickup_zone_lane_id,approach_queue_threshold_proxy_duration_seconds,approach_queue_threshold_proxy_threshold_m,validation_status
+baseline,327,172,131,178.36,1380.0,E_APPROACH_1,57.54,2220.0,E_ZONE_3_0,2340.0,100.0,DERIVED_PROXY_REQUIRES_REVIEW
+uniform,298,154,131,178.35,2580.0,E_APPROACH_1,57.54,1860.0,E_ZONE_3_0,2280.0,100.0,DERIVED_PROXY_REQUIRES_REVIEW
+optimized,387,191,162,178.19,3000.0,E_APPROACH_1,57.55,1980.0,E_ZONE_3_0,2880.0,100.0,DERIVED_PROXY_REQUIRES_REVIEW
+stress_1_3x,389,202,154,178.29,2760.0,E_APPROACH_1,57.54,3120.0,E_ZONE_3_0,3060.0,100.0,DERIVED_PROXY_REQUIRES_REVIEW

@@ -1,0 +1,89 @@
+{
+  "source_engine": "SUMO",
+  "seed": 20261024,
+  "output_rows": 1401,
+  "columns": [
+    "scenario_id",
+    "run_id",
+    "timestamp_seconds",
+    "lane_id",
+    "lane_type",
+    "queueing_time_seconds",
+    "queueing_length_m",
+    "queueing_length_experimental_m",
+    "source_engine",
+    "source_file",
+    "seed"
+  ],
+  "scenarios": {
+    "baseline": {
+      "queue_timesteps": 60,
+      "observed_lane_records": 327,
+      "lane_records_by_type": {
+        "approach": 172,
+        "pickup_zone": 131,
+        "other": 24
+      },
+      "peak_observed_queue_length_m_by_lane_type": {
+        "approach": 178.36,
+        "pickup_zone": 57.54,
+        "other": 7.56
+      }
+    },
+    "uniform": {
+      "queue_timesteps": 60,
+      "observed_lane_records": 298,
+      "lane_records_by_type": {
+        "pickup_zone": 131,
+        "approach": 154,
+        "other": 13
+      },
+      "peak_observed_queue_length_m_by_lane_type": {
+        "pickup_zone": 57.54,
+        "approach": 178.35,
+        "other": 7.57
+      }
+    },
+    "optimized": {
+      "queue_timesteps": 60,
+      "observed_lane_records": 387,
+      "lane_records_by_type": {
+        "approach": 191,
+        "pickup_zone": 162,
+        "other": 34
+      },
+      "peak_observed_queue_length_m_by_lane_type": {
+        "approach": 178.19,
+        "pickup_zone": 57.55,
+        "other": 8.55
+      }
+    },
+    "stress_1_3x": {
+      "queue_timesteps": 60,
+      "observed_lane_records": 389,
+      "lane_records_by_type": {
+        "approach": 202,
+        "pickup_zone": 154,
+        "other": 33
+      },
+      "peak_observed_queue_length_m_by_lane_type": {
+        "approach": 178.29,
+        "pickup_zone": 57.54,
+        "other": 7.56
+      }
+    }
+  },
+  "definitions": {
+    "approach": "Lane ID contains APPROACH or _IN_; confirm against the network definition before interpreting.",
+    "pickup_zone": "Lane ID contains ZONE or BUS_BAY; classification is based on lane naming.",
+    "queueing_length_m": "SUMO queueing_length reported in metres, not vehicles.",
+    "queueing_length_experimental_m": "SUMO experimental queue length, kept separate from the standard queueing_length measurement."
+  },
+  "limitations": [
+    "Only lane records present in queues.xml are exported.",
+    "Missing lane records are not assumed to mean zero queue.",
+    "Queue length is not converted into vehicle counts.",
+    "This file does not establish actual pickup-zone occupancy.",
+    "A queue alone does not prove traffic spillback."
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "data_status": "assumed",
+  "safety_notice": "Geometric estimates do not establish legal authorization, emergency access, or pedestrian safety. School-authority verification is required.",
+  "zones": [
+    {
+      "zone_id": "Z01",
+      "zone_name": "North Curb",
+      "road_segment_id": "E_ZONE_1",
+      "usable_length_m": 36,
+      "allowed_vehicle_types": [
+        "car",
+        "two_wheeler",
+        "auto_rickshaw"
+      ],
+      "estimated_capacity_by_vehicle_type": {
+        "car": 5,
+        "two_wheeler": 12,
+        "auto_rickshaw": 7
+      },
+      "entry_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "exit_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "pedestrian_conflict_flag": true,
+      "emergency_access_conflict_flag": false,
+      "legal_status": "unverified",
+      "verification_status": "not_verified",
+      "capacity_method": "floor(usable_length_m / (vehicle_length_m + configured_spacing_gap_m)); simplified geometric estimate only",
+      "data_status": "assumed"
+    },
+    {
+      "zone_id": "Z02",
+      "zone_name": "West Lay-by",
+      "road_segment_id": "E_ZONE_2",
+      "usable_length_m": 48,
+      "allowed_vehicle_types": [
+        "car",
+        "van",
+        "two_wheeler",
+        "auto_rickshaw"
+      ],
+      "estimated_capacity_by_vehicle_type": {
+        "car": 7,
+        "van": 6,
+        "two_wheeler": 16,
+        "auto_rickshaw": 9
+      },
+      "entry_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "exit_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "pedestrian_conflict_flag": false,
+      "emergency_access_conflict_flag": false,
+      "legal_status": "unverified",
+      "verification_status": "not_verified",
+      "capacity_method": "floor(usable_length_m / (vehicle_length_m + configured_spacing_gap_m)); simplified geometric estimate only",
+      "data_status": "assumed"
+    },
+    {
+      "zone_id": "Z03",
+      "zone_name": "South Curb",
+      "road_segment_id": "E_ZONE_3",
+      "usable_length_m": 30,
+      "allowed_vehicle_types": [
+        "car",
+        "two_wheeler",
+        "van",
+        "auto_rickshaw"
+      ],
+      "estimated_capacity_by_vehicle_type": {
+        "car": 4,
+        "two_wheeler": 10,
+        "van": 3,
+        "auto_rickshaw": 6
+      },
+      "entry_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "exit_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "pedestrian_conflict_flag": true,
+      "emergency_access_conflict_flag": false,
+      "legal_status": "unverified",
+      "verification_status": "not_verified",
+      "capacity_method": "floor(usable_length_m / (vehicle_length_m + configured_spacing_gap_m)); simplified geometric estimate only",
+      "data_status": "assumed"
+    },
+    {
+      "zone_id": "Z04",
+      "zone_name": "Bus Bay (Unverified)",
+      "road_segment_id": "E_BUS_BAY",
+      "usable_length_m": 42,
+      "allowed_vehicle_types": [
+        "bus",
+        "van"
+      ],
+      "estimated_capacity_by_vehicle_type": {
+        "bus": 2,
+        "van": 5
+      },
+      "entry_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "exit_time_window": {
+        "start": "07:45:00",
+        "end": "09:00:00"
+      },
+      "pedestrian_conflict_flag": false,
+      "emergency_access_conflict_flag": true,
+      "legal_status": "unverified",
+      "verification_status": "not_verified",
+      "capacity_method": "floor(usable_length_m / (vehicle_length_m + configured_spacing_gap_m)); simplified geometric estimate only",
+      "data_status": "assumed"
+    }
+  ]
+}
