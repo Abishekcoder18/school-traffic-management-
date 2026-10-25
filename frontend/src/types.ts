@@ -1,6 +1,6 @@
-export type UserRole = 'admin' | 'driver';
+export type UserRole = 'admin' | 'parent';
 
-export type AdminTab = 'overview' | 'cause' | 'schedule' | 'test';
+export type AdminTab = 'overview' | 'map' | 'cause' | 'schedule' | 'test' | 'schools';
 
 export interface TrafficMetric {
   id: string;
@@ -58,7 +58,7 @@ export interface ScheduleCandidate {
   badge: string;
   description: string;
   staggerIntervalMin: number;
-  peakQueueReductionPct: number;
+  peakQueueReductionPct: number | null;
   waitTimeReductionMin: number;
   totalDelayHours: number;
   spillbackReductionMeters: number;
@@ -81,11 +81,11 @@ export interface SimulationResult {
   simulatedAt: string;
   fidelityNote: string;
   metrics: {
-    peakQueue: { baseline: number; candidate: number; unit: string; deltaPct: number };
-    waitTimeP95: { baseline: number; candidate: number; unit: string; deltaPct: number };
-    totalDelay: { baseline: number; candidate: number; unit: string; deltaPct: number };
-    spillbackDistance: { baseline: number; candidate: number; unit: string; deltaPct: number };
-    zoneViolations: { baseline: number; candidate: number; unit: string; deltaPct: number };
+    peakQueue: { baseline: number; candidate: number; unit: string; deltaPct: number | null };
+    waitTimeP95: { baseline: number; candidate: number; unit: string; deltaPct: number | null };
+    totalDelay: { baseline: number; candidate: number; unit: string; deltaPct: number | null };
+    spillbackDistance: { baseline: number; candidate: number; unit: string; deltaPct: number | null };
+    zoneViolations: { baseline: number; candidate: number; unit: string; deltaPct: number | null };
   };
   timeIntervals: {
     time: string;

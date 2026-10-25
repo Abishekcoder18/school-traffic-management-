@@ -62,29 +62,32 @@ def compute_diagnosis() -> DiagnosisResponse:
     underutilized = min(gates, key=lambda g: g.utilizationRate)
     idle_pct = round(100 - underutilized.utilizationRate)
 
-    # ── Step 6: Spillback estimate ─────────────────────────────────────────
-    # Heuristic: each vehicle that can't be served adds ~3.75m queue
-    overflow_vehicles = max(0, bottleneck_gate.peakDemand - bottleneck_gate.hourlyCapacity)
-    spillback_meters = round(overflow_vehicles * 3.75)
-
-    # ── Step 7: Peak queue length estimate ─────────────────────────────────
+    # ── Step 6: Read the scenario-provided queue baseline ───────────────────
     metric = next((m for m in scenario.trafficMetrics if m.id == "peak-queue"), None)
-    peak_queue = metric.numericValue if metric else overflow_vehicles
+    peak_queue = (
+        f"{metric.numericValue:g} vehicles"
+        if metric else "No peak-queue value is provided."
+    )
+    peak_queue_detail = (
+        f"The synthetic scenario supplies a peak-queue baseline of {peak_queue}. "
+        "It is not derived from hourly demand in this diagnosis."
+        if metric else peak_queue
+    )
 
     # ── Step 8: Build primary cause statement ──────────────────────────────
     cohort_names = " and ".join(c.cohort for c in gate_cohorts)
     if simultaneous_conflict:
         primary_cause = (
-            f"Simultaneous {conflict_time_str} Dismissal Collision on "
-            f"Single-Lane Infrastructure at {bottleneck_gate.name.split('—')[0].strip()}"
+            f"Synchronized {conflict_time_str} Dismissal at "
+            f"{bottleneck_gate.name.split('—')[0].strip()}"
         )
         explanation = (
-            f"Both {cohort_names} share the exact same dismissal bell at {conflict_time_str} "
-            f"and are routed to the {bottleneck_gate.bays}-bay {bottleneck_gate.name}. "
-            f"With a processing capability of {bottleneck_gate.hourlyCapacity} vehicles per hour, "
-            f"the peak surge of {total_gate_vehicles} arriving vehicles overwhelms the loop "
-            f"within 20 minutes, generating an unmitigated {int(peak_queue)}-vehicle queue "
-            f"that spills {spillback_meters} meters onto {bottleneck_gate.approachStreet}."
+            f"{cohort_names} share the same dismissal time at {conflict_time_str} and are "
+            f"assigned to the {bottleneck_gate.bays}-bay {bottleneck_gate.name}. "
+            f"The scenario reports peak demand of {bottleneck_gate.peakDemand} veh/h "
+            f"against {bottleneck_gate.hourlyCapacity} veh/h capacity. The cohorts contain "
+            f"{total_gate_vehicles} synthetic vehicles over the dismissal window; its duration "
+            f"is not specified, so that count is not an hourly rate. {peak_queue_detail}"
         )
     else:
         primary_cause = (
@@ -92,40 +95,38 @@ def compute_diagnosis() -> DiagnosisResponse:
             f"{overload_ratio}x Design Capacity"
         )
         explanation = (
-            f"{bottleneck_gate.name} receives {total_gate_vehicles} vehicles across "
-            f"{len(gate_cohorts)} cohorts but has a maximum throughput of only "
-            f"{bottleneck_gate.hourlyCapacity} vehicles per hour ({bottleneck_gate.bays} bays). "
-            f"The sustained overload ratio of {overload_ratio}x generates queue spillback "
-            f"of approximately {spillback_meters} meters."
+            f"{bottleneck_gate.name} has scenario peak demand of "
+            f"{bottleneck_gate.peakDemand} veh/h against "
+            f"{bottleneck_gate.hourlyCapacity} veh/h capacity "
+            f"({bottleneck_gate.bays} bays; {overload_ratio}x). The assigned cohorts contain "
+            f"{total_gate_vehicles} synthetic vehicles over a dismissal window whose duration "
+            f"is not specified, so the count is not an hourly rate. {peak_queue_detail}"
         )
 
     # ── Step 9: Compile evidence ────────────────────────────────────────────
     evidence: list[DiagnosisEvidence] = [
         DiagnosisEvidence(
-            title="Arrival Surge vs Bay Capacity Mismatch",
+            title="Hourly Arrival Demand vs Gate Capacity",
             detail=(
-                f"{total_gate_vehicles} vehicles funneling through {bottleneck_gate.bays} "
-                f"loading bays gives {design_dwell:.1f} seconds per boarding operation, "
-                f"while measured student boarding averages {avg_dwell:.0f} seconds."
+                f"The assigned cohorts contain {total_gate_vehicles} synthetic dismissal-window "
+                f"vehicles (not an hourly rate). The scenario reports "
+                f"{bottleneck_gate.peakDemand} veh/h against {bottleneck_gate.hourlyCapacity} "
+                f"veh/h capacity. Assumed average dwell is {avg_dwell:.0f} seconds versus a "
+                f"{design_dwell:.1f}-second design value."
             ),
-            metric=f"{bottleneck_gate.utilizationRate:.0f}% Capacity Overload",
+            metric=f"{bottleneck_gate.utilizationRate:.0f}% of capacity",
         ),
         DiagnosisEvidence(
-            title="Spillback onto Public Arterial Road",
-            detail=(
-                f"Queue reaches past campus turn-lane threshold into "
-                f"{bottleneck_gate.approachStreet}, impeding local transit. "
-                f"Estimated {spillback_meters}m of spillback from {int(overflow_vehicles)} "
-                f"excess vehicles unable to enter the gate loop."
-            ),
-            metric=f"{spillback_meters}m Spillback Beyond Perimeter",
+            title="Scenario-Provided Peak Queue",
+            detail=peak_queue_detail,
+            metric=peak_queue,
         ),
         DiagnosisEvidence(
-            title="Underutilized Adjacent Infrastructure",
+            title="Lowest Modeled Gate Utilization",
             detail=(
-                f"{underutilized.name} operates at only {underutilized.utilizationRate:.0f}% "
-                f"capacity during the peak window with {underutilized.bays} bays and a "
-                f"dedicated staging driveway — {idle_pct}% of that capacity is idle."
+                f"{underutilized.name} has the lowest listed utilization at "
+                f"{underutilized.utilizationRate:.0f}% with {underutilized.bays} bays. "
+                "This indicates modeled spare capacity, not automatic eligibility for reassignment."
             ),
             metric=f"{idle_pct}% Idle Capacity at {underutilized.name.split('—')[0].strip()}",
         ),
@@ -150,8 +151,9 @@ def compute_diagnosis() -> DiagnosisResponse:
         ),
         limitations=[
             "Vehicle demand counts are assumed estimates, not field observations.",
+            "The scenario does not specify the time window represented by cohort vehicle counts; they are not directly comparable to hourly rates.",
             "Dwell time is a fixed assumed value, not a measured sample distribution.",
-            "Spillback distance is a heuristic estimate (3.75m per overflow vehicle).",
+            "This diagnosis does not infer queue length or spillback distance from hourly demand alone.",
             "Gate hourly capacity assumes uniform service; real throughput varies by bay count and staff.",
         ],
     )

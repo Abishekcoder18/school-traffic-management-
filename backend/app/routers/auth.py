@@ -4,7 +4,6 @@ GateFlow AI — Auth Router
 Endpoints:
     POST /api/auth/login    — username + password → JWT access token
     GET  /api/auth/me       — returns current user from bearer token
-    POST /api/auth/register — create a new user (hashes password before storing)
 """
 from __future__ import annotations
 
@@ -13,17 +12,19 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.db import get_db
 from app.models.user import User
+from app.models.school_access import ManagedSchool, ParentSchoolMembership
 from app.services.auth_service import (
     authenticate_user,
     create_access_token,
     decode_access_token,
     get_user_by_username,
-    hash_password,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -50,14 +51,6 @@ class UserOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class RegisterRequest(BaseModel):
-    username: str
-    email: EmailStr
-    full_name: str | None = None
-    password: str
-    role: str = "viewer"
-
-
 # ── Dependency — get current user from bearer token ──────────────────────────
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
@@ -77,14 +70,41 @@ def get_current_user(
             detail={"error": {"code": "INVALID_TOKEN", "message": "Token payload missing subject."}},
             headers={"WWW-Authenticate": "Bearer"},
         )
-    user = get_user_by_username(db, username)
+    try:
+        user = get_user_by_username(db, username)
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"error": {"code": "DATABASE_UNAVAILABLE", "message": "Authentication database is unavailable."}},
+        ) from exc
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": {"code": "USER_NOT_FOUND", "message": "User not found or inactive."}},
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if user.role not in {"admin", "parent"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": {"code": "ROLE_NOT_ALLOWED", "message": "This account has no application role."}},
+        )
     return user
+
+
+def require_roles(*roles: str):
+    def dependency(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+        if current_user.role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"error": {"code": "FORBIDDEN", "message": "Your role cannot access this resource."}},
+            )
+        return current_user
+
+    return dependency
+
+
+require_authenticated = require_roles("admin", "parent")
+require_admin = require_roles("admin")
 
 
 # ── POST /api/auth/login ──────────────────────────────────────────────────────
@@ -97,7 +117,13 @@ def login(
     Authenticate with username (or email) + password.
     Returns a JWT bearer token valid for 8 hours.
     """
-    user = authenticate_user(db, form.username, form.password)
+    try:
+        user = authenticate_user(db, form.username, form.password)
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"error": {"code": "DATABASE_UNAVAILABLE", "message": "Authentication database is unavailable."}},
+        ) from exc
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -109,7 +135,26 @@ def login(
             },
             headers={"WWW-Authenticate": "Bearer"},
         )
-    from app.config import settings
+    if user.role not in {"admin", "parent"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": {"code": "ROLE_NOT_ALLOWED", "message": "This account has no application role."}},
+        )
+    if user.role == "parent":
+        active_membership = (
+            db.query(ParentSchoolMembership)
+            .join(ManagedSchool, ManagedSchool.id == ParentSchoolMembership.school_id)
+            .filter(
+                ParentSchoolMembership.user_id == user.id,
+                ManagedSchool.parent_access_enabled.is_(True),
+            )
+            .first()
+        )
+        if not active_membership:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Parent access is not enabled for any school linked to this account.",
+            )
     token = create_access_token({"sub": user.username, "role": user.role})
     logger.info(f"User '{user.username}' logged in (role={user.role})")
     return TokenResponse(
@@ -124,35 +169,3 @@ def login(
 def me(current_user: Annotated[User, Depends(get_current_user)]):
     """Return the currently authenticated user's profile."""
     return current_user
-
-
-# ── POST /api/auth/register ───────────────────────────────────────────────────
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    """
-    Register a new user account.
-    Passwords are bcrypt-hashed before being stored in MySQL.
-    """
-    if get_user_by_username(db, body.username):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={
-                "error": {
-                    "code": "USERNAME_TAKEN",
-                    "message": f"Username '{body.username}' is already registered.",
-                }
-            },
-        )
-    user = User(
-        username=body.username,
-        email=body.email,
-        full_name=body.full_name,
-        role=body.role,
-        hashed_password=hash_password(body.password),
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    logger.info(f"New user registered: '{user.username}' (role={user.role})")
-    return user

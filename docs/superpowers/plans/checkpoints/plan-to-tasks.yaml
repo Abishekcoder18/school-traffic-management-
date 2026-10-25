@@ -1,0 +1,116 @@
+metadata:
+  generated: "2026-10-25"
+  source_plan: "docs/superpowers/plans/2026-10-25-chennai-school-map-grounded-ai-plan.md"
+  target_tasks: "docs/superpowers/plans/2026-10-25-chennai-school-map-grounded-ai-plan.md#tasks"
+
+summary:
+  total_plan_items: 10
+  covered_plan_items: 10
+  missing_plan_items: 0
+  coverage_percentage: 100.0
+  total_tasks_generated: 21
+  orphan_tasks: 0
+
+phases:
+  - phase_id: "Phase-1"
+    phase_name: "Backend integration foundation"
+    items:
+      - item_id: "1.1"
+        description: "Configure optional providers and safe status"
+        tasks: ["T001", "T002", "T003"]
+        notes: ""
+      - item_id: "1.2"
+        description: "Persist shared school and annotations"
+        tasks: ["T003", "T004", "T005", "T006"]
+        notes: ""
+  - phase_id: "Phase-2"
+    phase_name: "Chennai school map workflow"
+    items:
+      - item_id: "2.1"
+        description: "Add typed Maps/Places client and map surface"
+        tasks: ["T007", "T008"]
+        notes: ""
+      - item_id: "2.2"
+        description: "Add administrator gate and pickup-area editor"
+        tasks: ["T007", "T008", "T009"]
+        notes: ""
+      - item_id: "2.3"
+        description: "Share active map with driver and add navigation/status surfaces"
+        tasks: ["T010", "T011", "T012"]
+        notes: ""
+  - phase_id: "Phase-3"
+    phase_name: "Project-grounded AI explainer"
+    items:
+      - item_id: "3.1"
+        description: "Build bounded server-side project evidence"
+        tasks: ["T013"]
+        notes: ""
+      - item_id: "3.2"
+        description: "Call OpenRouter and validate explanation responses"
+        tasks: ["T014", "T015"]
+        notes: ""
+      - item_id: "3.3"
+        description: "Add contextual explainer UI and disclosure"
+        tasks: ["T016", "T017"]
+        notes: ""
+  - phase_id: "Phase-4"
+    phase_name: "Validation and documentation"
+    items:
+      - item_id: "4.1"
+        description: "Add regression tests and verify user flows"
+        tasks: ["T018", "T019", "T020"]
+        notes: ""
+      - item_id: "4.2"
+        description: "Document local configuration and demo limitations"
+        tasks: ["T021"]
+        notes: ""
+
+missing_plan_items: []
+orphan_tasks: []
+upstream_trace:
+  - plan_item: "1.1"
+    source_requirements: ["REQ-007", "REQ-008"]
+    tasks: ["T001", "T002", "T003"]
+    full_trace: "REQ-007,REQ-008 → Phase-1.1 → T001,T002,T003"
+  - plan_item: "1.2"
+    source_requirements: ["REQ-003", "REQ-004", "REQ-008", "REQ-009"]
+    tasks: ["T003", "T004", "T005", "T006"]
+    full_trace: "REQ-003,REQ-004,REQ-008,REQ-009 → Phase-1.2 → T003,T004,T005,T006"
+  - plan_item: "2.1"
+    source_requirements: ["REQ-001", "REQ-002"]
+    tasks: ["T007", "T008"]
+    full_trace: "REQ-001,REQ-002 → Phase-2.1 → T007,T008"
+  - plan_item: "2.2"
+    source_requirements: ["REQ-001", "REQ-003", "REQ-004", "REQ-009"]
+    tasks: ["T007", "T008", "T009"]
+    full_trace: "REQ-001,REQ-003,REQ-004,REQ-009 → Phase-2.2 → T007,T008,T009"
+  - plan_item: "2.3"
+    source_requirements: ["REQ-004", "REQ-007", "REQ-008", "REQ-009"]
+    tasks: ["T010", "T011", "T012"]
+    full_trace: "REQ-004,REQ-007,REQ-008,REQ-009 → Phase-2.3 → T010,T011,T012"
+  - plan_item: "3.1"
+    source_requirements: ["REQ-005", "REQ-006", "REQ-010"]
+    tasks: ["T013"]
+    full_trace: "REQ-005,REQ-006,REQ-010 → Phase-3.1 → T013"
+  - plan_item: "3.2"
+    source_requirements: ["REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-010"]
+    tasks: ["T014", "T015"]
+    full_trace: "REQ-005,REQ-006,REQ-007,REQ-008,REQ-010 → Phase-3.2 → T014,T015"
+  - plan_item: "3.3"
+    source_requirements: ["REQ-006", "REQ-008", "REQ-010"]
+    tasks: ["T016", "T017"]
+    full_trace: "REQ-006,REQ-008,REQ-010 → Phase-3.3 → T016,T017"
+  - plan_item: "4.1"
+    source_requirements: ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-010"]
+    tasks: ["T018", "T019", "T020"]
+    full_trace: "REQ-001..REQ-010 → Phase-4.1 → T018,T019,T020"
+  - plan_item: "4.2"
+    source_requirements: ["REQ-007", "REQ-009", "REQ-010"]
+    tasks: ["T021"]
+    full_trace: "REQ-007,REQ-009,REQ-010 → Phase-4.2 → T021"
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "No project topology was found; no G-group task labels are applicable."

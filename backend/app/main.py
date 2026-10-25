@@ -19,8 +19,9 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.db import check_db_connection
 from app.routers import diagnosis, scenario, schedules, simulation
-from app.routers import auth
-from app.services.auth_service import create_tables
+from app.routers import auth, schools
+from app.routers import explanations, integrations
+from app.services.auth_service import create_tables, seed_default_school, seed_demo_users
 from app.services.data_service import get_scenario
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -34,15 +35,23 @@ logger = logging.getLogger(__name__)
 # ── Startup / Shutdown ────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Pre-warm the scenario cache and verify MySQL on startup."""
+    """Pre-warm the scenario cache and verify PostgreSQL on startup."""
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
 
-    # ── MySQL ─────────────────────────────────────────────────────────────────
+    # ── PostgreSQL ────────────────────────────────────────────────────────────
     db_ok = check_db_connection()
     if db_ok:
-        create_tables()  # idempotent — creates users table if not present
+        if (
+            len(settings.jwt_secret) < 32
+            or settings.jwt_secret == "replace-with-a-random-secret"
+        ):
+            raise RuntimeError("JWT_SECRET must be a private value of at least 32 characters.")
+        if not create_tables():
+            raise RuntimeError("Could not initialize PostgreSQL authentication tables.")
+        seed_demo_users()
+        seed_default_school()
     else:
-        logger.warning("⚠️  MySQL unavailable — auth endpoints will return 503.")
+        logger.warning("⚠️  PostgreSQL unavailable — authentication cannot be used.")
 
     # ── Scenario cache ────────────────────────────────────────────────────────
     try:
@@ -115,6 +124,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)          # POST /api/auth/login | GET /api/auth/me
+app.include_router(schools.router)
+app.include_router(integrations.router)
+app.include_router(explanations.router)
 app.include_router(scenario.router)
 app.include_router(diagnosis.router)
 app.include_router(schedules.router)

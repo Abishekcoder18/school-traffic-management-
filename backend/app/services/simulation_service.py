@@ -1,7 +1,7 @@
 """GateFlow AI — Simulation Service (Feature 3: Test the Schedule)
 
-Uses deterministic queuing theory (M/D/c approximation) to compute
-simulation metrics for the selected schedule vs. baseline.
+Uses a deterministic five-minute queue estimate to compare the selected
+schedule with the baseline.
 
 IMPORTANT: All results are labeled 'DeterministicEstimate'.
 SUMO is not installed — no SUMO results are fabricated.
@@ -9,6 +9,7 @@ SUMO is not installed — no SUMO results are fabricated.
 from __future__ import annotations
 
 import logging
+import math
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -23,6 +24,7 @@ from app.models.simulation import (
     TimeInterval,
 )
 from app.services.data_service import get_scenario
+from app.services.planning_service import compute_calibrated_gate_arrivals
 
 logger = logging.getLogger(__name__)
 
@@ -61,95 +63,85 @@ def _simulate_queue_timeseries(
     offsets_by_cohort_id: dict[str, int],
     gates_by_id: dict,
     demand_factor: float,
-    dwell_seconds: float,
+    assigned_gates_by_cohort_id: Optional[dict[str, str]] = None,
+    start_minute: int = 150,
+    end_minute: int = 225,
     interval_min: int = 15,
+    capacity_factor: float = 1.0,
 ) -> tuple[list[TimeInterval], dict]:
     """
-    Simulate queue evolution using a time-bucket M/D/c model.
+    Simulate queue evolution from the same calibrated arrivals as the planner.
     Returns (time_series, peak_metrics).
     """
     BUCKET = 5  # internal simulation step (minutes)
-    START = 150  # 2:30 PM in minutes from midnight
-    END = 225    # 3:45 PM
+    offsets = [offsets_by_cohort_id.get(cohort.id, 0) for cohort in cohorts]
+    assignments = [
+        (assigned_gates_by_cohort_id or {}).get(cohort.id, cohort.assignedGateId)
+        for cohort in cohorts
+    ]
+    gate_arrivals = compute_calibrated_gate_arrivals(
+        cohorts, offsets, gates_by_id, demand_factor, assignments
+    )
+    time_points = list(range(start_minute, end_minute + BUCKET, BUCKET))
+    queues = {gate_id: 0.0 for gate_id in gates_by_id}
+    total_queues: list[float] = []
+    wait_samples: list[float] = []
+    total_delay_veh_min = 0.0
+    spillback_meters = 0.0
 
-    # Per-gate queue simulation
-    gate_queues: dict[str, list[float]] = {g.id: [] for g in gates_by_id.values()}
+    for time_point in time_points:
+        total_queue = 0.0
+        for gate_id, gate in gates_by_id.items():
+            arrivals = gate_arrivals[gate_id].get(time_point, 0.0) * BUCKET / 60.0
+            service = gate.hourlyCapacity * capacity_factor * BUCKET / 60.0
+            queues[gate_id] = max(0.0, queues[gate_id] + arrivals - service)
+            total_queue += queues[gate_id]
+            if queues[gate_id] > 0:
+                wait_samples.append(queues[gate_id] * 60.0 / gate.hourlyCapacity)
+            spillback_meters = max(
+                spillback_meters,
+                max(0.0, queues[gate_id] - gate.bays * 5) * 3.75,
+            )
 
-    for gate in gates_by_id.values():
-        gate_cohorts = [c for c in cohorts if c.assignedGateId == gate.id]
-        c_servers = gate.bays
-        mu_per_min = gate.hourlyCapacity / (gate.bays * 60.0)
+        total_queues.append(total_queue)
+        total_delay_veh_min += total_queue * BUCKET
 
-        queue = 0.0
-        for t in range(START, END + BUCKET, BUCKET):
-            arrivals = 0.0
-            for cohort in gate_cohorts:
-                offset = offsets_by_cohort_id.get(cohort.id, 0)
-                center = _hm_to_minutes(cohort.currentDismissalTime) + offset
-                spread = 20  # minutes
-                if abs(t - center) <= spread:
-                    arrivals += (
-                        cohort.vehicleDemand * demand_factor * (BUCKET / (spread * 2))
-                    )
-
-            served = min(queue + arrivals, c_servers * mu_per_min * BUCKET)
-            queue = max(0.0, queue + arrivals - served)
-            gate_queues[gate.id].append(queue)
-
-    # Build time series at `interval_min` steps
-    # Aggregate across all gates
-    time_points = list(range(START, END + BUCKET, BUCKET))
-    interval_buckets = range(START, END + BUCKET, interval_min)
+    wait_samples.sort()
+    p95_wait_min = (
+        wait_samples[max(0, math.ceil(len(wait_samples) * 0.95) - 1)]
+        if wait_samples else 0.0
+    )
 
     intervals: list[TimeInterval] = []
-    for t_start in range(START, END, interval_min):
-        # Average queue in this interval across all gates
-        total_q = 0.0
-        for gate in gates_by_id.values():
-            step_indices = [
-                i for i, t in enumerate(time_points) if t_start <= t < t_start + interval_min
-            ]
-            if step_indices:
-                gate_q = sum(gate_queues[gate.id][i] for i in step_indices if i < len(gate_queues[gate.id])) / len(step_indices)
-                total_q += gate_q
-
+    for t_start in range(start_minute, end_minute, interval_min):
+        step_indices = [
+            i for i, time_point in enumerate(time_points)
+            if t_start <= time_point < t_start + interval_min
+        ]
+        total_q = (
+            sum(total_queues[i] for i in step_indices) / len(step_indices)
+            if step_indices else 0.0
+        )
         intervals.append(
             TimeInterval(
                 time=_minutes_to_display(t_start),
                 baselineQueue=0.0,  # filled in later
                 candidateQueue=round(total_q, 1),
-                gateCapacity=float(gates_by_id["gate-2"].hourlyCapacity // 4),  # per-gate queue limit
+                gateCapacity=(
+                    sum(gate.hourlyCapacity for gate in gates_by_id.values())
+                    * interval_min / 60.0
+                ),
             )
         )
 
-    # Summary metrics
-    all_queues = [iv.candidateQueue for iv in intervals]
-    peak_q = max(all_queues) if all_queues else 0.0
-
-    # P95 wait estimate via queuing formula
-    # For M/D/c, approx wait ≈ queue / (effective service rate)
-    bottleneck = max(gates_by_id.values(), key=lambda g: g.peakDemand / g.hourlyCapacity)
-    eff_rate = bottleneck.bays * bottleneck.hourlyCapacity / bottleneck.bays / 60.0
-    p95_wait_min = round(peak_q / max(eff_rate, 0.1) * 0.5, 1)
-
-    # Total delay: area under queue curve × avg dwell
-    total_delay_veh_hrs = round(
-        sum(all_queues) * (interval_min / 60.0) * 0.5, 1
-    )
-
-    # Spillback estimate
-    gate2 = gates_by_id.get("gate-2")
-    gate2_q_index = next(
-        (i for i, t in enumerate(time_points) if t == 180), None  # 3:00 PM
-    )
-    gate2_q_at_peak = gate_queues["gate-2"][gate2_q_index] if (gate2_q_index is not None and gate2_q_index < len(gate_queues.get("gate-2", []))) else 0.0
-    spillback = round(max(0.0, gate2_q_at_peak - (gate2.bays * 5 if gate2 else 0)) * 3.75, 0)
-
     metrics = {
-        "peak_queue": round(peak_q, 1),
-        "p95_wait_min": p95_wait_min,
-        "total_delay_veh_hrs": total_delay_veh_hrs,
-        "spillback_meters": spillback,
+        "mean_queue": round(
+            sum(total_queues) / len(total_queues) if total_queues else 0.0, 1
+        ),
+        "peak_queue": round(max(total_queues, default=0.0), 1),
+        "p95_wait_min": round(p95_wait_min, 1),
+        "total_delay_veh_hrs": round(total_delay_veh_min / 60.0, 1),
+        "spillback_meters": round(spillback_meters, 1),
     }
     return intervals, metrics
 
@@ -170,23 +162,34 @@ def run_simulation(request: SimulationRunRequest) -> SimulationResult:
     scenario = get_scenario()
     cohorts = scenario.cohorts
     gates_by_id = {g.id: g for g in scenario.gates}
-    dwell_seconds = scenario.school.averageDwellTimeSeconds
     demand_factor = request.demandFactor
 
     # Extract offsets from the selected candidate's group schedule
     offsets_by_cohort_id: dict[str, int] = {}
+    assigned_gates_by_cohort_id: dict[str, str] = {}
     for row in schedule.groupSchedule:
         offsets_by_cohort_id[row.cohortId] = row.offsetMinutes
+        assigned_gates_by_cohort_id[row.cohortId] = row.assignedGateId
+
+    centers = [
+        _hm_to_minutes(cohort.currentDismissalTime) + offset
+        for cohort in cohorts
+        for offset in (0, offsets_by_cohort_id.get(cohort.id, 0))
+    ]
+    start_minute = ((min(centers) - 10) // 15) * 15
+    end_minute = ((max(centers) + 24) // 15) * 15
 
     # ── Run CANDIDATE simulation ──────────────────────────────────────────
     cand_intervals, cand_metrics = _simulate_queue_timeseries(
-        cohorts, offsets_by_cohort_id, gates_by_id, demand_factor, dwell_seconds
+        cohorts, offsets_by_cohort_id, gates_by_id, demand_factor,
+        assigned_gates_by_cohort_id, start_minute, end_minute,
     )
 
     # ── Run BASELINE simulation (identical conditions, zero offsets) ──────
     baseline_offsets = {c.id: 0 for c in cohorts}
     base_intervals, base_metrics = _simulate_queue_timeseries(
-        cohorts, baseline_offsets, gates_by_id, demand_factor, dwell_seconds
+        cohorts, baseline_offsets, gates_by_id, demand_factor,
+        start_minute=start_minute, end_minute=end_minute,
     )
 
     # Inject baseline queue into the combined time series
@@ -195,9 +198,9 @@ def run_simulation(request: SimulationRunRequest) -> SimulationResult:
         iv.baselineQueue = base_q
 
     # ── Compute delta % ───────────────────────────────────────────────────
-    def _delta(base: float, cand: float) -> float:
+    def _delta(base: float, cand: float) -> Optional[float]:
         if base == 0:
-            return 0.0
+            return 0.0 if cand == 0 else None
         return round((cand - base) / base * 100.0, 1)
 
     threshold = scenario.school.vehicleCapacityThreshold
@@ -241,11 +244,15 @@ def run_simulation(request: SimulationRunRequest) -> SimulationResult:
     # ── Improvements & risks ──────────────────────────────────────────────
     improvements: list[str] = []
     if cand_metrics["peak_queue"] < base_metrics["peak_queue"]:
-        improvements.append(
-            f"Peak queue reduced from {base_metrics['peak_queue']:.0f} to "
-            f"{cand_metrics['peak_queue']:.0f} vehicles "
-            f"({abs(_delta(base_metrics['peak_queue'], cand_metrics['peak_queue'])):.1f}% improvement)."
+        peak_queue_delta = _delta(
+            base_metrics["peak_queue"], cand_metrics["peak_queue"]
         )
+        if peak_queue_delta is not None:
+            improvements.append(
+                f"Peak queue reduced from {base_metrics['peak_queue']:.1f} to "
+                f"{cand_metrics['peak_queue']:.1f} vehicles "
+                f"({abs(peak_queue_delta):.1f}% lower in this model)."
+            )
     if cand_metrics["spillback_meters"] < base_metrics["spillback_meters"]:
         delta_spill = base_metrics["spillback_meters"] - cand_metrics["spillback_meters"]
         improvements.append(
@@ -263,7 +270,8 @@ def run_simulation(request: SimulationRunRequest) -> SimulationResult:
     risks: list[str] = [
         "Parent compliance sensitivity: late arrivals may reduce modeled queue benefit.",
         "Estimates based on synthetic data — field conditions may differ.",
-        "Dwell time is fixed at the assumed average; variance will affect actual queues.",
+        "Configured hourly gate capacities are held constant; real throughput may vary.",
+        "Spillback is a heuristic estimate based on modeled queue storage and queue length.",
     ]
 
     run_id = str(uuid.uuid4())[:8]
@@ -275,7 +283,7 @@ def run_simulation(request: SimulationRunRequest) -> SimulationResult:
         candidateName=schedule.name,
         simulatedAt=now,
         fidelityNote=(
-            "Deterministic planning estimate using M/D/c queuing theory with "
+            "Deterministic five-minute bucket-queue estimate using "
             "synthetic scenario data. SUMO is not installed on this system. "
             "Results are labeled 'DeterministicEstimate' and do not represent "
             "field-observed or SUMO-simulated traffic."
@@ -302,19 +310,34 @@ def get_comparison_report(run_id: str) -> Optional[ComparisonReport]:
     if not result:
         return None
     m = result.metrics
+    def reduction(delta_pct: Optional[float]) -> float:
+        return max(0.0, -delta_pct) if delta_pct is not None else 0.0
+
+    def change(delta_pct: Optional[float]) -> str:
+        if delta_pct is None:
+            return "not comparable"
+        if delta_pct < 0:
+            return f"{abs(delta_pct):.1f}% lower"
+        if delta_pct > 0:
+            return f"{delta_pct:.1f}% higher"
+        return "no modeled change"
+
     return ComparisonReport(
         baselineRunId=f"{run_id}-baseline",
         optimizedRunId=run_id,
         candidateId=result.candidateId,
         candidateName=result.candidateName,
-        queueReductionPct=abs(m.peakQueue.deltaPct),
-        waitReductionPct=abs(m.waitTimeP95.deltaPct),
-        delayReductionPct=abs(m.totalDelay.deltaPct),
-        spillbackEliminated=m.spillbackDistance.candidate == 0,
+        queueReductionPct=reduction(m.peakQueue.deltaPct),
+        waitReductionPct=reduction(m.waitTimeP95.deltaPct),
+        delayReductionPct=reduction(m.totalDelay.deltaPct),
+        spillbackEliminated=(
+            m.spillbackDistance.baseline > 0
+            and m.spillbackDistance.candidate == 0
+        ),
         overallImprovement=(
-            f"Queue: {m.peakQueue.deltaPct:.1f}%, "
-            f"Wait: {m.waitTimeP95.deltaPct:.1f}%, "
-            f"Delay: {m.totalDelay.deltaPct:.1f}%"
+            f"Queue: {change(m.peakQueue.deltaPct)}; "
+            f"wait: {change(m.waitTimeP95.deltaPct)}; "
+            f"delay: {change(m.totalDelay.deltaPct)}"
         ),
     )
 

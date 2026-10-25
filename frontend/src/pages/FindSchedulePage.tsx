@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { AdminTab } from '../types';
 import * as api from '../api/client';
+import { ProjectExplanation } from '../components/ProjectExplanation';
 
 interface FindSchedulePageProps {
   onNavigate: (tab: AdminTab) => void;
@@ -25,18 +26,34 @@ interface FindSchedulePageProps {
   onSelectCandidate: (candidate: api.ScheduleCandidate) => void;
 }
 
+const formatLowerIsBetter = (
+  reduction: number | null,
+  unit: string,
+  lowerLabel: string,
+  higherLabel: string,
+) => {
+  if (reduction === null) return 'Not comparable';
+  if (Math.abs(reduction) < 0.05) return 'No modeled change';
+  const amount = unit === '%' ? `${Math.abs(reduction)}%` : `${Math.abs(reduction)} ${unit}`;
+  return `${amount} ${reduction > 0 ? lowerLabel : higherLabel}`;
+};
+
+const changeColor = (reduction: number | null) => {
+  if (reduction === null || reduction === 0) return 'text-slate-600';
+  return reduction > 0 ? 'text-emerald-600' : 'text-amber-600';
+};
+
 export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
   onNavigate,
   selectedCandidate,
   onSelectCandidate
 }) => {
   const [naturalQuery, setNaturalQuery] = useState(
-    'Increase demand by 30%, keep Kindergarten fixed, keep sibling groups synchronized and prioritize queue reduction.'
+    'Keep Kindergarten fixed and prioritize queue reduction using current scenario demand.'
   );
   const [staggerInterval, setStaggerInterval] = useState<number>(15);
-  const [gateFlexibility, setGateFlexibility] = useState<'moderate' | 'strict' | 'aggressive'>('moderate');
-  const [syncSiblings, setSyncSiblings] = useState<boolean>(true);
-  const [maxDelayTolerance, setMaxDelayTolerance] = useState<number>(10);
+  const [gateFlexibility, setGateFlexibility] = useState<'strict' | 'eligible'>('eligible');
+  const [syncSiblings, setSyncSiblings] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [candidates, setCandidates] = useState<api.ScheduleCandidate[]>([]);
   const [searchMeta, setSearchMeta] = useState<{ totalEvaluated: number; feasibleCount: number; searchExplanation: string } | null>(null);
@@ -76,7 +93,12 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
       }
 
       // Step 2: Search for feasible schedules
-      const searchResult = await api.searchSchedules(parseResult.constraints);
+      const searchResult = await api.searchSchedules({
+        ...parseResult.constraints,
+        maxShiftMin: staggerInterval,
+        siblingSync: syncSiblings,
+        allowGateReassignment: gateFlexibility === 'eligible',
+      });
 
       if (searchResult.candidates.length === 0) {
         setNoFeasible(true);
@@ -116,13 +138,10 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
   };
 
   const handleResetConstraints = () => {
-    setNaturalQuery(
-      'Increase demand by 30%, keep Kindergarten fixed, keep sibling groups synchronized and prioritize queue reduction.'
-    );
+    setNaturalQuery('Keep Kindergarten fixed and prioritize queue reduction using current scenario demand.');
     setStaggerInterval(15);
-    setGateFlexibility('moderate');
-    setSyncSiblings(true);
-    setMaxDelayTolerance(10);
+    setGateFlexibility('eligible');
+    setSyncSiblings(false);
     setNoFeasible(false);
     setErrorMessage('');
     setCandidates([]);
@@ -147,7 +166,7 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
               Find a Better Schedule
             </h2>
             <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-              Formulate optimal dismissal time intervals and gate reallocations to eliminate Gate 2 spillback while respecting instructional minutes.
+              Compare feasible dismissal times and scenario-eligible gate assignments against the synthetic baseline.
             </p>
           </div>
 
@@ -186,7 +205,11 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
               id="query-box"
               rows={2}
               value={naturalQuery}
-              onChange={(e) => setNaturalQuery(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setNaturalQuery(value);
+                setSyncSiblings(/\b(sibling|siblings|family|families|multi-child|synchronize|synchronized|sync|together)\b/i.test(value));
+              }}
               className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white resize-none"
               placeholder="E.g., Increase demand by 30%, keep Kindergarten fixed, keep sibling groups synchronized and prioritize queue reduction."
             />
@@ -201,7 +224,10 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
               <button
                 key={idx}
                 type="button"
-                onClick={() => setNaturalQuery(p)}
+                onClick={() => {
+                  setNaturalQuery(p);
+                  setSyncSiblings(/\b(sibling|siblings|family|families|multi-child|synchronize|synchronized|sync|together)\b/i.test(p));
+                }}
                 className="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 px-2.5 py-1 rounded-md transition-colors border border-slate-200/60"
               >
                 {p.length > 60 ? p.substring(0, 57) + '...' : p}
@@ -223,7 +249,7 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
             {/* Control 1: Stagger Interval */}
             <div className="p-3 bg-slate-50 border border-slate-200/70 rounded-lg">
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Stagger Interval: <span className="text-blue-600 tabular-nums">{staggerInterval} min</span>
+                Maximum Time Shift: <span className="text-blue-600 tabular-nums">{staggerInterval} min</span>
               </label>
               <div className="flex items-center gap-1">
                 {[10, 15, 20].map((mins) => (
@@ -250,12 +276,11 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
               </label>
               <select
                 value={gateFlexibility}
-                onChange={(e) => setGateFlexibility(e.target.value as any)}
+                onChange={(e) => setGateFlexibility(e.target.value as 'strict' | 'eligible')}
                 className="w-full bg-white border border-slate-200 rounded text-xs py-1.5 px-2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
               >
-                <option value="strict">Strict Zone (Preserve Gates)</option>
-                <option value="moderate">Balanced (Allow Gate 4 Overflow)</option>
-                <option value="aggressive">Dynamic (Full Reallocation)</option>
+                <option value="strict">Preserve current gate assignments</option>
+                <option value="eligible">Allow scenario-listed alternate gates</option>
               </select>
             </div>
 
@@ -278,21 +303,6 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
               </button>
             </div>
 
-            {/* Control 4: Max Delay Tolerance */}
-            <div className="p-3 bg-slate-50 border border-slate-200/70 rounded-lg">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Max Wait Ceiling: <span className="text-blue-600 tabular-nums">{maxDelayTolerance} min</span>
-              </label>
-              <input
-                type="range"
-                min="5"
-                max="25"
-                step="5"
-                value={maxDelayTolerance}
-                onChange={(e) => setMaxDelayTolerance(Number(e.target.value))}
-                className="w-full accent-blue-600 cursor-pointer"
-              />
-            </div>
           </div>
 
           {/* Constraint Warnings */}
@@ -314,7 +324,7 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
           {/* Action Row */}
           <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-slate-500">
-              Evaluates feasibility against 21 campus loading bays and district bus schedules.
+              Synthetic scenario · deterministic capacity estimates · no live traffic feed.
             </span>
 
             <button
@@ -360,20 +370,8 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
             </p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-lg max-w-md mx-auto text-left text-xs text-slate-600 space-y-1.5 border border-slate-200">
-            <div className="font-semibold text-slate-800">Recommended Adjustments:</div>
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-              <span>Increase stagger interval to at least 12–15 minutes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-              <span>Allow secondary routing to Gate 4 Athletics loop (6 idle bays)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-              <span>Enable sibling carpool clustering</span>
-            </div>
+          <div className="bg-slate-50 p-4 rounded-lg max-w-md mx-auto text-left text-xs text-slate-600 border border-slate-200">
+            Gate capacities and scenario-listed gate eligibility were preserved. The explanation above identifies the limiting constraint.
           </div>
 
           <div className="pt-2">
@@ -456,20 +454,20 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
                       <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-slate-500">Peak Queue Reduction:</span>
-                          <span className="font-bold text-emerald-600 tabular-nums">
-                            -{candidate.peakQueueReductionPct}%
+                          <span className={`font-bold tabular-nums ${changeColor(candidate.peakQueueReductionPct)}`}>
+                            {formatLowerIsBetter(candidate.peakQueueReductionPct, '%', 'lower', 'higher')}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-slate-500">Wait Time Saved:</span>
-                          <span className="font-bold text-emerald-600 tabular-nums">
-                            -{candidate.waitTimeReductionMin} min
+                          <span className={`font-bold tabular-nums ${changeColor(candidate.waitTimeReductionMin)}`}>
+                            {formatLowerIsBetter(candidate.waitTimeReductionMin, 'min', 'saved', 'longer')}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-slate-500">Spillback Contained:</span>
-                          <span className="font-bold text-blue-700 tabular-nums">
-                            {candidate.spillbackReductionMeters}m
+                          <span className={`font-bold tabular-nums ${changeColor(candidate.spillbackReductionMeters)}`}>
+                            {formatLowerIsBetter(candidate.spillbackReductionMeters, 'm', 'lower', 'higher')}
                           </span>
                         </div>
                       </div>
@@ -548,7 +546,17 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
                         <td className="py-3 px-3 text-slate-800 font-medium">
                           {row.assignedGate}
                         </td>
-                        <td className="py-3 px-3 text-slate-600">{row.zoneBay}</td>
+                        <td className="py-3 px-3 text-slate-600">
+                          {row.zoneBay}
+                          <div className={`mt-1 text-[10px] ${
+                            row.bayConstraintStatus === 'grandfathered'
+                              ? 'text-amber-700'
+                              : 'text-slate-400'
+                          }`}>
+                            {row.requiredBays} required · {row.availableBays} available
+                            {row.bayConstraintStatus === 'grandfathered' && ' · existing assignment'}
+                          </div>
+                        </td>
                         <td className="py-3 px-3 text-right font-semibold tabular-nums text-slate-800">
                           {row.vehicles} veh
                         </td>
@@ -572,6 +580,37 @@ export const FindSchedulePage: React.FC<FindSchedulePageProps> = ({
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Data Source: Synthetic (Deterministic Planning)</span>
                 </div>
+              </div>
+              {selectedCandidate.feasibilityReason && (
+                <p className="mt-3 text-xs text-slate-600">
+                  Capacity check: {selectedCandidate.feasibilityReason}
+                </p>
+              )}
+              {selectedCandidate.gateLoads && selectedCandidate.gateCapacities && (
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                  {Object.entries(selectedCandidate.gateLoads).map(([gateId, load]) => {
+                    const capacity = selectedCandidate.gateCapacities?.[gateId] ?? 0;
+                    const gateName = selectedCandidate.groupSchedule.find(
+                      (row) => row.assignedGateId === gateId
+                    )?.assignedGate ?? gateId;
+                    const overCapacity = load > capacity;
+                    return (
+                      <span
+                        key={gateId}
+                        className={`rounded px-2 py-1 ${
+                          overCapacity
+                            ? 'bg-amber-50 text-amber-800'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {gateName}: {load.toFixed(1)} / {capacity.toFixed(0)} veh/h
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="mt-4">
+                <ProjectExplanation source="schedule" referenceId={selectedCandidate.id} />
               </div>
             </div>
           )}

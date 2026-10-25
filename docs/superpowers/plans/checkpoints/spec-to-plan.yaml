@@ -1,0 +1,149 @@
+metadata:
+  generated: "2026-10-25"
+  source_spec: "docs/superpowers/specs/2026-10-25-chennai-school-map-grounded-ai-spec.md"
+  target_plan: "docs/superpowers/plans/2026-10-25-chennai-school-map-grounded-ai-plan.md"
+
+summary:
+  total_requirements: 10
+  covered_requirements: 10
+  missing_requirements: 0
+  coverage_percentage: 100.0
+
+requirements:
+  - req_id: "REQ-001"
+    req_description: "Chennai school discovery"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Chennai school map workflow"
+      items:
+        - item_id: "2.1"
+          description: "Add typed Maps/Places client and focused school map"
+        - item_id: "2.2"
+          description: "Add administrator gate and pickup-area editor"
+    notes: ""
+  - req_id: "REQ-002"
+    req_description: "Focused school map and traffic"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Chennai school map workflow"
+      items:
+        - item_id: "2.1"
+          description: "Add typed Maps/Places client and focused school map"
+    notes: ""
+  - req_id: "REQ-003"
+    req_description: "Administrator gate and pickup annotations"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-1,Phase-2"
+      phase_name: "Backend foundation and map workflow"
+      items:
+        - item_id: "1.2"
+          description: "Persist shared school and annotations"
+        - item_id: "2.2"
+          description: "Add administrator gate and pickup-area editor"
+    notes: ""
+  - req_id: "REQ-004"
+    req_description: "Shared school and map annotations"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-1,Phase-2"
+      phase_name: "Backend foundation and map workflow"
+      items:
+        - item_id: "1.2"
+          description: "Persist shared school and annotations"
+        - item_id: "2.3"
+          description: "Share active map with driver and add navigation/status surfaces"
+    notes: ""
+  - req_id: "REQ-005"
+    req_description: "Project-evidence-only explanation request"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-3"
+      phase_name: "Project-grounded AI explainer"
+      items:
+        - item_id: "3.1"
+          description: "Build bounded server-side project evidence"
+        - item_id: "3.2"
+          description: "Call OpenRouter and validate explanation responses"
+    notes: ""
+  - req_id: "REQ-006"
+    req_description: "Explainable and limited model output"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-3"
+      phase_name: "Project-grounded AI explainer"
+      items:
+        - item_id: "3.2"
+          description: "Call OpenRouter and validate explanation responses"
+        - item_id: "3.3"
+          description: "Add contextual explainer UI and disclosure"
+    notes: ""
+  - req_id: "REQ-007"
+    req_description: "Safe provider configuration and status"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-1,Phase-2"
+      phase_name: "Backend foundation and map workflow"
+      items:
+        - item_id: "1.1"
+          description: "Configure optional providers and safe status"
+        - item_id: "2.3"
+          description: "Share active map with driver and add navigation/status surfaces"
+    notes: ""
+  - req_id: "REQ-008"
+    req_description: "Graceful optional integrations"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-1,Phase-3,Phase-4"
+      phase_name: "Foundation, explainer, and validation"
+      items:
+        - item_id: "1.1"
+          description: "Configure optional providers and safe status"
+        - item_id: "1.2"
+          description: "Persist shared school and annotations"
+        - item_id: "3.2"
+          description: "Call OpenRouter and validate explanation responses"
+        - item_id: "4.1"
+          description: "Add regression tests and verify user flows"
+    notes: ""
+  - req_id: "REQ-009"
+    req_description: "Demo authorization boundary"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-1,Phase-2"
+      phase_name: "Backend foundation and map workflow"
+      items:
+        - item_id: "1.2"
+          description: "Persist shared school and annotations"
+        - item_id: "2.2"
+          description: "Add administrator gate and pickup-area editor"
+        - item_id: "2.3"
+          description: "Share active map with driver and add navigation/status surfaces"
+    notes: ""
+  - req_id: "REQ-010"
+    req_description: "Provider and data transparency"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-3,Phase-4"
+      phase_name: "Project-grounded AI and documentation"
+      items:
+        - item_id: "3.1"
+          description: "Build bounded server-side project evidence"
+        - item_id: "3.2"
+          description: "Call OpenRouter and validate explanation responses"
+        - item_id: "3.3"
+          description: "Add contextual explainer UI and disclosure"
+        - item_id: "4.2"
+          description: "Document local configuration and demo limitations"
+    notes: ""
+
+missing_requirements: []
+orphan_plan_items: []
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "No project constitution or technology guideline files were found."

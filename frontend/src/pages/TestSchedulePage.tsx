@@ -6,23 +6,39 @@ import {
   AlertTriangle,
   RotateCcw,
   Sparkles,
-  TrendingDown,
   Clock,
   ShieldCheck,
   Building,
   Car,
   FileCheck,
-  Check,
   Loader2
 } from 'lucide-react';
 import { AdminTab } from '../types';
 import * as api from '../api/client';
 import { SimulationChart } from '../components/SimulationChart';
+import { ProjectExplanation } from '../components/ProjectExplanation';
 
 interface TestSchedulePageProps {
   onNavigate: (tab: AdminTab) => void;
   selectedCandidate: api.ScheduleCandidate | null;
 }
+
+const MetricDelta: React.FC<{ metric: api.MetricComparison }> = ({ metric }) => {
+  const isImprovement = metric.deltaPct !== null && metric.deltaPct < 0;
+  const isWorse = metric.deltaPct !== null && metric.deltaPct > 0;
+  const label = metric.deltaPct === null
+    ? 'No baseline for % change'
+    : metric.deltaPct === 0
+      ? 'No modeled change'
+      : `${Math.abs(metric.deltaPct)}% ${isImprovement ? 'lower' : 'higher'}`;
+  const color = isImprovement
+    ? 'text-emerald-700 bg-emerald-50'
+    : isWorse
+      ? 'text-red-700 bg-red-50'
+      : 'text-slate-600 bg-slate-100';
+
+  return <span className={`px-2 py-0.5 rounded ${color}`}>{label}</span>;
+};
 
 export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
   onNavigate,
@@ -32,7 +48,9 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
   const [simulationProgress, setSimulationProgress] = useState<number>(0);
   const [simStepText, setSimStepText] = useState<string>('');
   const [simResult, setSimResult] = useState<api.SimulationResult | null>(null);
+  const [comparison, setComparison] = useState<api.ComparisonReport | null>(null);
   const [stressResult, setStressResult] = useState<api.StressTestResponse | null>(null);
+  const [stressError, setStressError] = useState<string>('');
   const [showAdoptSuccess, setShowAdoptSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -63,7 +81,9 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
     setIsSimulating(true);
     setErrorMessage('');
     setSimResult(null);
+    setComparison(null);
     setStressResult(null);
+    setStressError('');
 
     setSimulationProgress(15);
     setSimStepText('Phase 1: Preparing schedule inputs for queuing simulation...');
@@ -72,24 +92,24 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
       // Small delay to show progress
       await new Promise(r => setTimeout(r, 300));
       setSimulationProgress(40);
-      setSimStepText('Phase 2: Running deterministic queue model for candidate schedule...');
+      setSimStepText('Phase 2: Running deterministic estimate for candidate and baseline...');
 
-      // Run simulation for candidate
       const result = await api.runSimulation(selectedCandidate.id);
-
       setSimulationProgress(70);
-      setSimStepText('Phase 3: Running stress scenarios against selected plan...');
-
-      // Run stress tests
-      const stress = await api.runStressTests(selectedCandidate.id);
-
-      setSimulationProgress(100);
-      setSimStepText('Phase 4: Finalizing comparative metrics and risk report.');
-
-      await new Promise(r => setTimeout(r, 200));
-
+      setSimStepText('Phase 3: Loading baseline-versus-candidate comparison...');
+      const report = await api.getComparison(result.runId);
       setSimResult(result);
-      setStressResult(stress);
+      setComparison(report);
+
+      setSimulationProgress(85);
+      setSimStepText('Optional: Running stress scenarios...');
+      try {
+        setStressResult(await api.runStressTests(selectedCandidate.id));
+      } catch (err: any) {
+        setStressError(err.message || 'Stress testing failed.');
+      }
+      setSimulationProgress(100);
+      setSimStepText('Comparison complete.');
     } catch (err: any) {
       setErrorMessage(err.message || 'Simulation failed unexpectedly.');
     } finally {
@@ -160,6 +180,9 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
               <div className="text-[11px] text-blue-700">
                 {selectedCandidate.description}
               </div>
+              <p className="mt-3 text-xs text-slate-500">
+                Synthetic scenario data · deterministic estimate · no live traffic feed or SUMO simulation.
+              </p>
             </div>
           </div>
 
@@ -175,6 +198,11 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800">
           <strong>Simulation Error:</strong> {errorMessage}
+        </div>
+      )}
+      {stressError && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          The simulation and comparison completed; optional stress testing failed: {stressError}
         </div>
       )}
 
@@ -202,6 +230,18 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
       {/* Results — only shown when simulation has run */}
       {metrics && (
         <>
+          {comparison && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-blue-800">
+                Baseline comparison · {comparison.computedFrom}
+              </div>
+              <p className="mt-1 text-sm text-blue-900">{comparison.overallImprovement}</p>
+              <p className="mt-1 text-xs text-blue-700">
+                This is a model estimate from synthetic scenario data, not an observed or guaranteed improvement.
+              </p>
+            </div>
+          )}
+
           {/* 5-Metric Comparison Matrix Dashboard */}
           <div>
             <div className="mb-3">
@@ -229,8 +269,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                   <span className="text-[11px] text-slate-500">{metrics.peakQueue.unit}</span>
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  <TrendingDown className="w-3.5 h-3.5" />
-                  <span>{metrics.peakQueue.deltaPct}%</span>
+                  <MetricDelta metric={metrics.peakQueue} />
                 </div>
               </div>
 
@@ -249,8 +288,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                   <span className="text-[11px] text-slate-500">{metrics.waitTimeP95.unit}</span>
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  <TrendingDown className="w-3.5 h-3.5" />
-                  <span>{metrics.waitTimeP95.deltaPct}%</span>
+                  <MetricDelta metric={metrics.waitTimeP95} />
                 </div>
               </div>
 
@@ -269,8 +307,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                   <span className="text-[11px] text-slate-500">{metrics.totalDelay.unit}</span>
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  <TrendingDown className="w-3.5 h-3.5" />
-                  <span>{metrics.totalDelay.deltaPct}%</span>
+                  <MetricDelta metric={metrics.totalDelay} />
                 </div>
               </div>
 
@@ -288,8 +325,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                   </span>
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>{metrics.spillbackDistance.candidate === 0 ? '100% Contained' : `${metrics.spillbackDistance.deltaPct}%`}</span>
+                  <MetricDelta metric={metrics.spillbackDistance} />
                 </div>
               </div>
 
@@ -308,8 +344,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                   <span className="text-[11px] text-slate-500">{metrics.zoneViolations.unit}</span>
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  <TrendingDown className="w-3.5 h-3.5" />
-                  <span>{metrics.zoneViolations.deltaPct}%</span>
+                  <MetricDelta metric={metrics.zoneViolations} />
                 </div>
               </div>
             </div>
@@ -317,6 +352,9 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
 
           {/* Chart — uses simulation time intervals */}
           {simResult && <SimulationChart timeIntervals={simResult.timeIntervals} />}
+          {simResult && (
+            <ProjectExplanation source="simulation" referenceId={simResult.runId} />
+          )}
 
           {/* Improvements and Operational Risks Side-by-Side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -324,7 +362,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <h3 className="text-sm font-bold text-slate-900">
-                  Verified Traffic Improvements
+                  Model Observations
                 </h3>
               </div>
               <ul className="mt-4 space-y-3 text-xs text-slate-600">
@@ -372,6 +410,7 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                       <th className="py-2.5 px-3 text-right">Demand</th>
                       <th className="py-2.5 px-3 text-right">Dwell</th>
                       <th className="py-2.5 px-3 text-right">Compliance</th>
+                      <th className="py-2.5 px-3 text-right">Peak Gate Load</th>
                       <th className="py-2.5 px-3 text-right">Mean Queue</th>
                       <th className="py-2.5 px-3 text-right">P95 Wait</th>
                       <th className="py-2.5 px-3">Status</th>
@@ -384,6 +423,10 @@ export const TestSchedulePage: React.FC<TestSchedulePageProps> = ({
                         <td className="py-3 px-3 text-right tabular-nums">{(sc.demandFactor * 100).toFixed(0)}%</td>
                         <td className="py-3 px-3 text-right tabular-nums">{(sc.dwellFactor * 100).toFixed(0)}%</td>
                         <td className="py-3 px-3 text-right tabular-nums">{(sc.complianceRate * 100).toFixed(0)}%</td>
+                        <td className={`py-3 px-3 text-right font-medium tabular-nums ${sc.gateCapacityWithinLimit ? 'text-slate-700' : 'text-red-700'}`}>
+                          {sc.peakGateUtilizationPct.toFixed(1)}%
+                          {!sc.gateCapacityWithinLimit && <div className="text-[10px]">Above 105% limit</div>}
+                        </td>
                         <td className="py-3 px-3 text-right font-medium tabular-nums">{sc.meanQueue}</td>
                         <td className="py-3 px-3 text-right font-medium tabular-nums">{sc.p95Wait} min</td>
                         <td className="py-3 px-3">

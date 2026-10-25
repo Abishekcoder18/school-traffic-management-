@@ -6,10 +6,12 @@ import {
   PlaySquare,
   LogOut,
   ShieldCheck,
-  X
+  X,
+  Map,
+  School,
 } from 'lucide-react';
 import { AdminTab } from '../types';
-import { SCHOOL_PROFILE } from '../data/mockData';
+import type { AuthUser, ManagedSchool } from '../api/client';
 
 interface SidebarProps {
   currentTab: AdminTab;
@@ -17,6 +19,8 @@ interface SidebarProps {
   onLogout: () => void;
   isMobileOpen: boolean;
   onCloseMobile: () => void;
+  school: ManagedSchool;
+  user: AuthUser;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -24,13 +28,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   onLogout,
   isMobileOpen,
-  onCloseMobile
+  onCloseMobile,
+  school,
+  user,
 }) => {
   const navItems: { id: AdminTab; label: string; icon: React.ReactNode; badge?: string }[] = [
     {
       id: 'overview',
       label: 'Overview',
       icon: <LayoutDashboard className="w-4 h-4 shrink-0" />
+    },
+    {
+      id: 'map',
+      label: 'School Map',
+      icon: <Map className="w-4 h-4 shrink-0" />
     },
     {
       id: 'cause',
@@ -48,6 +59,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'test',
       label: 'Test the Schedule',
       icon: <PlaySquare className="w-4 h-4 shrink-0" />
+    },
+    {
+      id: 'schools',
+      label: 'School Management',
+      icon: <School className="w-4 h-4 shrink-0" />
     }
   ];
 
@@ -85,11 +101,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           Active Campus
         </div>
         <div className="text-xs font-semibold text-slate-800 truncate mt-0.5">
-          {SCHOOL_PROFILE.name}
+          {school.name}
         </div>
         <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>
-          <span>4 Gates Active · Peak Afternoon</span>
+          <span>{school.trafficScenarioConfigured ? 'Traffic scenario configured' : 'Traffic scenario not configured'}</span>
         </div>
       </div>
 
@@ -142,14 +158,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between px-2 py-1">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-semibold text-xs flex items-center justify-center shrink-0">
-              AD
+              {(user.full_name || user.email).slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
               <div className="text-xs font-semibold text-slate-800 truncate">
-                Admin Officer
+                {user.full_name || 'School Administrator'}
               </div>
               <div className="text-[11px] text-slate-500 truncate">
-                admin@oakridge.edu
+                {user.email}
               </div>
             </div>
           </div>

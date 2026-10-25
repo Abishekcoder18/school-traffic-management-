@@ -14,6 +14,7 @@ import {
 import { AdminTab } from '../types';
 import * as api from '../api/client';
 import { DemandCapacityChart } from '../components/DemandCapacityChart';
+import { ProjectExplanation } from '../components/ProjectExplanation';
 
 interface FindCausePageProps {
   onNavigate: (tab: AdminTab) => void;
@@ -111,7 +112,7 @@ export const FindCausePage: React.FC<FindCausePageProps> = ({ onNavigate }) => {
               <span>Active Physical Gates</span>
             </div>
             <div className="text-sm font-bold text-slate-800 tabular-nums mt-1">
-              4 Physical Gates
+              {GATES_DATA.length} Physical Gates
             </div>
           </div>
 
@@ -129,6 +130,7 @@ export const FindCausePage: React.FC<FindCausePageProps> = ({ onNavigate }) => {
 
       {/* Demand vs Capacity Visualization */}
       <DemandCapacityChart />
+      <ProjectExplanation source="diagnosis" />
 
       {/* Identified Bottleneck & Evidence Section */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 md:p-6 shadow-xs space-y-6">
@@ -142,7 +144,7 @@ export const FindCausePage: React.FC<FindCausePageProps> = ({ onNavigate }) => {
                 Identified Bottleneck: {BOTTLENECK_DIAGNOSIS.gateName}
               </h3>
               <p className="text-xs text-slate-500">
-                Severe load imbalance detected · Overload Factor: {BOTTLENECK_DIAGNOSIS.overloadRatio}x (150% Capacity)
+                Modeled load imbalance · {Math.round(BOTTLENECK_DIAGNOSIS.overloadRatio * 100)}% of gate capacity
               </p>
             </div>
           </div>
@@ -165,7 +167,7 @@ export const FindCausePage: React.FC<FindCausePageProps> = ({ onNavigate }) => {
         {/* 3 Evidence Cards */}
         <div>
           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
-            Empirical Supporting Evidence
+            Scenario-Derived Evidence
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

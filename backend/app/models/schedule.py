@@ -13,6 +13,7 @@ class ParsedConstraints(BaseModel):
     siblingSync: bool = False          # synchronize sibling groups
     maxShiftMin: int = 30              # maximum time shift per cohort
     zoneRestrictions: list[str] = []   # e.g. ["gate-2-only"]
+    allowGateReassignment: bool = True
     optimizationObjective: Literal[
         "queue_reduction", "minimal_disruption", "balanced"
     ] = "queue_reduction"
@@ -46,6 +47,9 @@ class GroupScheduleRow(BaseModel):
     assignedGateId: str
     zoneBay: str
     vehicles: int
+    requiredBays: int
+    availableBays: int
+    bayConstraintStatus: Literal["satisfied", "grandfathered"]
 
 
 class ScheduleCandidate(BaseModel):
@@ -54,7 +58,7 @@ class ScheduleCandidate(BaseModel):
     badge: str
     description: str
     staggerIntervalMin: int
-    peakQueueReductionPct: float
+    peakQueueReductionPct: Optional[float] = None
     waitTimeReductionMin: float
     totalDelayHours: float
     spillbackReductionMeters: float
@@ -65,6 +69,7 @@ class ScheduleCandidate(BaseModel):
     objectiveScore: float = 0.0
     disruptionScore: float = 0.0
     gateLoads: dict[str, float] = {}
+    gateCapacities: dict[str, float] = {}
     isFeasible: bool = True
     feasibilityReason: str = "All gate capacity constraints satisfied"
     computedFrom: str = "DeterministicPlanning"

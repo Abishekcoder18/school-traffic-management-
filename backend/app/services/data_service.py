@@ -66,7 +66,8 @@ def get_driver_assignment() -> DriverAssignment:
     """Return the default driver assignment (synthetic demo data)."""
     raw = _load_raw()
     da = raw["driverAssignment"]
-    today_str = datetime.now().strftime("Today, %b %-d, %Y")
+    today = datetime.now()
+    today_str = f"Today, {today.strftime('%b')} {today.day}, {today.year}"
     return DriverAssignment(
         driverName=da["driverName"],
         driverId=da["driverId"],

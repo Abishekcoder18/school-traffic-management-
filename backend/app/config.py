@@ -4,6 +4,7 @@ GateFlow AI Backend Configuration
 All settings are loaded from environment variables or the .env file.
 Never hard-code secrets here.
 """
+from sqlalchemy import URL
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -30,6 +31,7 @@ class Settings(BaseSettings):
 
     # Data
     scenario_data_path: Path = Path("./data/scenario.json")
+    map_state_path: Path = Path("./data/map_state.json")
 
     # Simulation
     random_seed: int = 42
@@ -38,28 +40,32 @@ class Settings(BaseSettings):
 
     # AI (not used in deterministic mode — key kept server-side)
     gemini_api_key: str = ""
+    openrouter_api_key: str = ""
+    openrouter_model: str = "moonshotai/kimi-k2:free"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
-    # ── MySQL Database ────────────────────────────────────────────────────────
-    db_host: str = "10.0.23.73"
-    db_port: int = 3306
+        # ── PostgreSQL Database ───────────────────────────────────────────────
+    db_host: str = "localhost"
+    db_port: int = 5432
     db_name: str = "schooltraffic"
-    db_user: str = "root"
-    db_password: str = "venkat@2007VKK"
+    db_user: str = "postgres"
+    db_password: str = ""
 
     @property
-    def database_url(self) -> str:
-        """SQLAlchemy-compatible MySQL connection URL (PyMySQL driver)."""
-        return (
-            f"mysql+pymysql://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-            f"?charset=utf8mb4"
+    def database_url(self):
+        return URL.create(
+            "postgresql+psycopg",
+            username=self.db_user,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name,
         )
 
     # ── JWT Auth ──────────────────────────────────────────────────────────────
-    jwt_secret: str = "gateflow-super-secret-change-in-production"
+    jwt_secret: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 8  # 8 hours
 
 
 settings = Settings()
-

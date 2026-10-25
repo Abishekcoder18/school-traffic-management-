@@ -28,6 +28,7 @@ def validate_constraints(constraints: ParsedConstraints) -> ConstraintValidation
     warnings: list[str] = []
     scenario = get_scenario()
     valid_cohort_ids = {c.id for c in scenario.cohorts}
+    valid_gate_ids = {gate.id for gate in scenario.gates}
 
     # ── Demand factor bounds ──────────────────────────────────────────────
     if constraints.demandFactor < 0.5:
@@ -47,6 +48,14 @@ def validate_constraints(constraints: ParsedConstraints) -> ConstraintValidation
             errors.append(
                 f"Fixed group '{gid}' does not exist in the scenario. "
                 f"Valid cohort IDs: {sorted(valid_cohort_ids)}"
+            )
+
+    for restriction in constraints.zoneRestrictions:
+        gate_id = restriction.removesuffix("-only")
+        if gate_id not in valid_gate_ids or gate_id == restriction:
+            errors.append(
+                f"Zone restriction '{restriction}' is invalid. "
+                f"Use a scenario gate ID followed by '-only'."
             )
 
     # ── Max shift bounds ──────────────────────────────────────────────────

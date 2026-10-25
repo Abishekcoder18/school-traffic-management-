@@ -1,32 +1,29 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, ShieldCheck, ArrowRight, Car, UserCheck, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, ArrowRight, UserCheck, AlertCircle, UsersRound } from 'lucide-react';
 import { UserRole } from '../types';
+import { IntegrationStatus } from '../components/IntegrationStatus';
+import { AuthUser, clearAuthToken, login } from '../api/client';
 
 interface LoginPageProps {
-  onLogin: (role: UserRole) => void;
+  onLogin: (user: AuthUser) => Promise<void>;
+  initialRole?: UserRole;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('admin@oakridge.edu');
-  const [password, setPassword] = useState('password123');
+export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, initialRole = 'admin' }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('admin');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole);
+  const [rememberTerminal, setRememberTerminal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleQuickPreset = (role: UserRole) => {
+  const selectRole = (role: UserRole) => {
     setSelectedRole(role);
-    if (role === 'admin') {
-      setEmail('admin@oakridge.edu');
-      setPassword('adminPass2026!');
-    } else {
-      setEmail('sarah.jenkins@family.oakridge.edu');
-      setPassword('driverPass2026!');
-    }
     setErrorMessage('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -46,10 +43,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const user = await login(email.trim(), password, rememberTerminal);
+      if (user.role !== selectedRole) {
+        clearAuthToken();
+        setErrorMessage(`This account is registered as ${user.role}. Select the matching sign-in portal.`);
+        return;
+      }
+      await onLogin(user);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Sign-in failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      onLogin(selectedRole);
-    }, 450);
+    }
   };
 
   return (
@@ -79,7 +85,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
               <button
                 type="button"
-                onClick={() => handleQuickPreset('admin')}
+                onClick={() => selectRole('admin')}
                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all focus-visible:outline-blue-600 ${
                   selectedRole === 'admin'
                     ? 'bg-white text-blue-700 shadow-xs'
@@ -92,21 +98,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
               <button
                 type="button"
-                onClick={() => handleQuickPreset('driver')}
+                onClick={() => selectRole('parent')}
                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all focus-visible:outline-blue-600 ${
-                  selectedRole === 'driver'
+                  selectedRole === 'parent'
                     ? 'bg-white text-blue-700 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Car className="w-4 h-4 text-blue-600" />
-                <span>Parent / Driver</span>
+                <UsersRound className="w-4 h-4 text-blue-600" />
+                <span>Parent</span>
               </button>
             </div>
             <p className="mt-2 text-[11px] text-slate-400">
               {selectedRole === 'admin'
-                ? 'Full access to traffic diagnostics, schedule optimization, and SUMO simulation.'
-                : 'Streamlined mobile view with assigned gates, arrival windows, and live directions.'}
+                ? 'Access to traffic diagnostics, schedule optimization, simulation, and map editing.'
+                : 'View pickup details only for schools linked to your verified parent account.'}
             </p>
           </div>
 
@@ -136,11 +142,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="block w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                placeholder={
-                  selectedRole === 'admin'
-                    ? 'admin@oakridge.edu'
-                    : 'parent@domain.com'
-                }
+                placeholder="name@example.com"
               />
             </div>
 
@@ -182,23 +184,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <label className="flex items-center text-xs text-slate-600 cursor-pointer">
                 <input
                   type="checkbox"
-                  defaultChecked
+                  checked={rememberTerminal}
+                  onChange={(event) => setRememberTerminal(event.target.checked)}
                   className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2"
                 />
                 Remember this terminal
               </label>
 
-              <button
-                type="button"
-                onClick={() =>
-                  alert(
-                    'Demo mode: Credentials pre-filled for both Administrator and Driver roles.'
-                  )
-                }
-                className="text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                Need assistance?
-              </button>
+              <span className="text-xs text-slate-500">School access is verified after sign-in.</span>
             </div>
 
             <div className="pt-2">
@@ -211,18 +204,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <span>
-                      Sign In as{' '}
-                      {selectedRole === 'admin'
-                        ? 'School Administrator'
-                        : 'Driver'}
-                    </span>
+                    <span>Sign In as {selectedRole === 'admin' ? 'School Administrator' : 'Parent'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </div>
           </form>
+        </div>
+
+        <div className="mt-4">
+          <IntegrationStatus />
         </div>
 
         <p className="mt-4 text-center text-xs text-slate-400">

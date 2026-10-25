@@ -1,8 +1,8 @@
 """
-GateFlow AI — MySQL Database Connection
+GateFlow AI — PostgreSQL Database Connection
 -----------------------------------------
-Uses SQLAlchemy 2.x with PyMySQL driver.
-Connection target: 10.0.23.73 / schooltraffic
+Uses SQLAlchemy 2.x with psycopg driver.
+Connection target: configured PostgreSQL schooltraffic database.
 
 Usage:
     from app.db import get_db, engine
@@ -60,16 +60,16 @@ def get_db():
 # ── Connectivity Check ────────────────────────────────────────────────────────
 def check_db_connection() -> bool:
     """
-    Returns True if the MySQL database is reachable, False otherwise.
+    Returns True if the PostgreSQL database is reachable, False otherwise.
     Called on startup so the health endpoint can report DB status.
     """
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         logger.info(
-            f"✅ MySQL connected: {settings.db_host}:{settings.db_port}/{settings.db_name}"
+            f"✅ PostgreSQL connected: {settings.db_host}:{settings.db_port}/{settings.db_name}"
         )
         return True
     except Exception as exc:
-        logger.error(f"❌ MySQL connection failed: {exc}")
+        logger.error(f"❌ PostgreSQL connection failed: {exc}")
         return False

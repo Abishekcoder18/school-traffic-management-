@@ -17,6 +17,10 @@ from app.models.simulation import (
     StressTestResponse,
 )
 from app.services.data_service import get_scenario
+from app.services.planning_service import (
+    GATE_SAFETY_MARGIN,
+    compute_calibrated_gate_arrivals,
+)
 from app.services.simulation_service import _simulate_queue_timeseries, get_registered_schedule
 
 logger = logging.getLogger(__name__)
@@ -89,13 +93,14 @@ def run_stress_tests(request: StressTestRequest) -> StressTestResponse:
     scenario = get_scenario()
     cohorts = scenario.cohorts
     gates_by_id = {g.id: g for g in scenario.gates}
-    base_dwell = scenario.school.averageDwellTimeSeconds
     threshold = scenario.school.vehicleCapacityThreshold
 
     # Extract offsets from the selected plan
     offsets_by_cohort_id: dict[str, int] = {}
+    assigned_gates_by_cohort_id: dict[str, str] = {}
     for row in schedule.groupSchedule:
         offsets_by_cohort_id[row.cohortId] = row.offsetMinutes
+        assigned_gates_by_cohort_id[row.cohortId] = row.assignedGateId
 
     results: list[StressScenarioResult] = []
 
@@ -103,7 +108,6 @@ def run_stress_tests(request: StressTestRequest) -> StressTestResponse:
         demand_factor = defn["demandFactor"]
         dwell_factor = defn["dwellFactor"]
         compliance = defn["complianceRate"]
-        effective_dwell = base_dwell * dwell_factor
 
         # Compliance failure: late arrivals spread demand over a wider window
         # We model this by increasing effective demand factor slightly
@@ -114,32 +118,73 @@ def run_stress_tests(request: StressTestRequest) -> StressTestResponse:
             offsets_by_cohort_id,
             gates_by_id,
             effective_demand,
-            effective_dwell,
+            assigned_gates_by_cohort_id,
+            capacity_factor=1.0 / dwell_factor,
         )
 
+        offsets = [offsets_by_cohort_id.get(cohort.id, 0) for cohort in cohorts]
+        assignments = [
+            assigned_gates_by_cohort_id.get(cohort.id, cohort.assignedGateId)
+            for cohort in cohorts
+        ]
+        gate_arrivals = compute_calibrated_gate_arrivals(
+            cohorts, offsets, gates_by_id, effective_demand, assignments
+        )
+        gate_loads = {
+            gate_id: max(buckets.values(), default=0.0)
+            for gate_id, buckets in gate_arrivals.items()
+        }
+        gate_capacities = {
+            gate.id: gate.hourlyCapacity / dwell_factor
+            for gate in scenario.gates
+        }
+        peak_gate_utilization = max(
+            (
+                gate_loads.get(gate.id, 0.0) / gate_capacities[gate.id] * 100
+                for gate in scenario.gates
+            ),
+            default=0.0,
+        )
+        capacity_violations = [
+            f"{gate.name}: {gate_loads.get(gate.id, 0.0):.1f} veh/h exceeds "
+            f"the {GATE_SAFETY_MARGIN:.0%} planning limit "
+            f"({gate_capacities[gate.id] * GATE_SAFETY_MARGIN:.1f} veh/h)"
+            for gate in scenario.gates
+            if gate_loads.get(gate.id, 0.0)
+            > gate_capacities[gate.id] * GATE_SAFETY_MARGIN
+        ]
+        gate_capacity_within_limit = not capacity_violations
+
+        mean_q = metrics["mean_queue"]
         peak_q = metrics["peak_queue"]
         p95_wait = metrics["p95_wait_min"]
         worst_q = peak_q * 1.15  # 15% headroom for stochastic variance
 
-        is_fragile = peak_q > threshold
+        is_fragile = peak_q > threshold or not gate_capacity_within_limit
         if peak_q > threshold * 1.3:
             status = "critical"
-        elif peak_q > threshold:
+        elif peak_q > threshold or not gate_capacity_within_limit:
             status = "degraded"
         else:
             status = "stable"
 
-        if is_fragile:
+        findings = []
+        if peak_q > threshold:
+            findings.append(
+                f"peak queue ({peak_q:.1f} vehicles) exceeds the "
+                f"{threshold}-vehicle campus threshold"
+            )
+        if capacity_violations:
+            findings.extend(capacity_violations)
+        if findings:
             explanation = (
-                f"Under this scenario the peak queue ({peak_q:.0f} vehicles) "
-                f"exceeds the {threshold}-vehicle campus threshold. "
-                f"The schedule is fragile to {defn['name'].lower()}."
+                f"Under {defn['name'].lower()}, " + "; ".join(findings) + "."
             )
         else:
             explanation = (
-                f"Peak queue ({peak_q:.0f} vehicles) stays within the "
-                f"{threshold}-vehicle limit. The schedule is stable under "
-                f"{defn['name'].lower()}."
+                f"Peak queue ({peak_q:.1f} vehicles) stays within the "
+                f"{threshold}-vehicle limit and gate capacity constraints remain "
+                f"within the {GATE_SAFETY_MARGIN:.0%} planning limit."
             )
 
         results.append(
@@ -149,7 +194,9 @@ def run_stress_tests(request: StressTestRequest) -> StressTestResponse:
                 demandFactor=demand_factor,
                 dwellFactor=dwell_factor,
                 complianceRate=compliance,
-                meanQueue=round(peak_q * 0.6, 1),  # mean ≈ 60% of peak for typical bell curve
+                peakGateUtilizationPct=round(peak_gate_utilization, 1),
+                gateCapacityWithinLimit=gate_capacity_within_limit,
+                meanQueue=mean_q,
                 p95Wait=p95_wait,
                 worstCaseQueue=round(worst_q, 1),
                 isFragile=is_fragile,

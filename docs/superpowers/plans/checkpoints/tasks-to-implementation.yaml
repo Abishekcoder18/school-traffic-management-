@@ -1,0 +1,35 @@
+metadata:
+  generated: "2026-10-25"
+  source_plan: "docs/superpowers/plans/2026-10-25-chennai-school-map-grounded-ai-plan.md"
+
+summary:
+  total_tasks: 21
+  completed_tasks: 21
+  blocked_tasks: 0
+  completion_percentage: 100
+
+implementation:
+  backend:
+    - "Added safe integration status and bounded project-evidence OpenRouter explanation APIs."
+    - "Added validated map models, atomic file-backed shared active-school and annotation state, and map routes."
+    - "Added regression tests for map API persistence, coordinate validation, safe status, bounded evidence, and provider failures."
+  frontend:
+    - "Added Chennai-focused Google Places search, focused traffic-layer map, and admin gate/pickup geometry editor."
+    - "Added shared read-only driver map and non-secret provider status in login and role portals."
+    - "Added explanation UI for diagnosis, selected schedule, and simulation results."
+  documentation:
+    - "Updated root and frontend README files with setup, security boundaries, provider data flow, and demo limitations."
+
+validation:
+  backend_tests: "46 passed"
+  frontend_typecheck: "passed"
+  frontend_build: "passed"
+  http_smoke_checks:
+    - "GET /api/health returned 200."
+    - "GET /api/scenario returned Oakridge scenario with four gates and five cohorts."
+    - "GET /api/integrations/status returned unconfigured OpenRouter without a secret."
+    - "GET /api/maps/active returned a valid empty active-school state."
+    - "POST /api/explanations returned explicit 503 when OpenRouter was unconfigured."
+  browser_walkthrough: "Not completed: browser tool could not launch because Playwright Chromium was not installed."
+  live_providers: "Not tested: requires owner-rotated OpenRouter and restricted Google Maps credentials."
+  credential_scan: "No exposed key patterns found in implementation, examples, or documentation."

@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.routers.schools import require_traffic_admin
 from app.models.simulation import (
     ComparisonReport,
     SimulationResult,
@@ -25,7 +26,7 @@ from app.services.simulation_service import (
 )
 from app.services.stress_service import run_stress_tests
 
-router = APIRouter(prefix="/api", tags=["simulation"])
+router = APIRouter(prefix="/api", tags=["simulation"], dependencies=[Depends(require_traffic_admin)])
 logger = logging.getLogger(__name__)
 
 

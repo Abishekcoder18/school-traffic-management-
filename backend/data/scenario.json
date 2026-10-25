@@ -105,6 +105,7 @@
       "vehicleDemand": 130,
       "currentDismissalTime": "15:00",
       "assignedGateId": "gate-2",
+      "eligibleGateIds": ["gate-2", "gate-4"],
       "bayRequirement": 5,
       "isKindergarten": false,
       "hasSiblingGroup": true

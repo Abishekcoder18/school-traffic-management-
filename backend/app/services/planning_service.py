@@ -23,6 +23,7 @@ from app.models.schedule import (
     ScheduleSearchRequest,
     ScheduleSearchResponse,
 )
+from app.models.school import DemandCohort, GateInfo
 from app.services.data_service import get_scenario
 
 logger = logging.getLogger(__name__)
@@ -77,44 +78,69 @@ def _gate_display(gate_id: str, gates_by_id: dict) -> tuple[str, str]:
     return f"{short_name} ({gate.name.split('—')[1].strip()})", bays_str
 
 
-def _compute_gate_loads(
-    cohorts,
+def compute_calibrated_gate_arrivals(
+    cohorts: list[DemandCohort],
     offsets: list[int],
-    gates_by_id: dict,
+    gates_by_id: dict[str, GateInfo],
     demand_factor: float = 1.0,
-) -> dict[str, float]:
+    gate_assignments: Optional[list[str]] = None,
+) -> dict[str, dict[int, float]]:
+    """Return calibrated arrivals in vehicles/hour for each gate and 5-minute bucket.
+
+    ``DemandCohort.vehicleDemand`` is a synthetic dismissal-window volume,
+    whereas ``GateInfo.peakDemand`` and ``hourlyCapacity`` are hourly gate
+    rates. Apportion each source gate's configured peak rate by cohort volume,
+    then use the same profile for feasibility and queue estimates.
     """
-    Compute peak load on each gate given an offset vector.
-    Uses a time-bucket approach with 5-minute intervals.
-    Returns gate_id → peak_vehicles_per_hour ratio.
-    """
-    # Build time-bucket demand: gate_id → {time_bucket: vehicle_count}
-    BUCKET = 5  # minutes
     gate_demand: dict[str, dict[int, float]] = {
-        g.id: {} for g in gates_by_id.values()
+        gate_id: {} for gate_id in gates_by_id
     }
 
-    for cohort, offset in zip(cohorts, offsets):
+    cohorts_by_gate: dict[str, list] = {g.id: [] for g in gates_by_id.values()}
+    for cohort in cohorts:
+        if cohort.assignedGateId in cohorts_by_gate:
+            cohorts_by_gate[cohort.assignedGateId].append(cohort)
+
+    PROFILE = ((-10, 0.2), (-5, 0.6), (0, 1.0), (5, 0.6), (10, 0.2))
+
+    assignments = gate_assignments or [c.assignedGateId for c in cohorts]
+    for cohort, offset, assigned_gate_id in zip(cohorts, offsets, assignments):
+        source_gate = gates_by_id.get(cohort.assignedGateId)
+        gate = gates_by_id.get(assigned_gate_id)
+        gate_cohorts = cohorts_by_gate.get(cohort.assignedGateId, [])
+        total_gate_volume = sum(c.vehicleDemand for c in gate_cohorts)
+        if not source_gate or not gate or total_gate_volume <= 0:
+            continue
+
         base = _hm_to_minutes(cohort.currentDismissalTime)
         arrival_center = base + offset
-        vehicles = cohort.vehicleDemand * demand_factor
-        # Spread arrival over 20-minute window (Poisson approximation)
-        for dt in range(0, 25, BUCKET):
-            bucket = ((arrival_center + dt) // BUCKET) * BUCKET
-            gate_demand[cohort.assignedGateId][bucket] = (
-                gate_demand[cohort.assignedGateId].get(bucket, 0.0)
-                + vehicles * (BUCKET / 20.0)  # fraction of total in this bucket
+        calibrated_peak = (
+            source_gate.peakDemand * (cohort.vehicleDemand / total_gate_volume) * demand_factor
+        )
+        for dt, weight in PROFILE:
+            bucket = ((arrival_center + dt) // 5) * 5
+            gate_demand[assigned_gate_id][bucket] = (
+                gate_demand[assigned_gate_id].get(bucket, 0.0)
+                + calibrated_peak * weight
             )
 
-    # Convert peak bucket count to veh/hour rate
-    gate_loads: dict[str, float] = {}
-    for gate_id, buckets in gate_demand.items():
-        if not buckets:
-            gate_loads[gate_id] = 0.0
-        else:
-            peak_bucket = max(buckets.values())
-            # bucket is BUCKET minutes wide, scale to hourly
-            gate_loads[gate_id] = peak_bucket * (60.0 / BUCKET)
+    return gate_demand
+
+
+def _compute_gate_loads(
+    cohorts: list[DemandCohort],
+    offsets: list[int],
+    gates_by_id: dict[str, GateInfo],
+    demand_factor: float = 1.0,
+    gate_assignments: Optional[list[str]] = None,
+) -> dict[str, float]:
+    gate_arrivals = compute_calibrated_gate_arrivals(
+        cohorts, offsets, gates_by_id, demand_factor, gate_assignments
+    )
+    gate_loads = {
+        gate_id: max(buckets.values(), default=0.0)
+        for gate_id, buckets in gate_arrivals.items()
+    }
 
     return gate_loads
 
@@ -152,73 +178,64 @@ def _is_feasible(
 
 
 def _compute_queue_metrics(
-    cohorts,
+    cohorts: list[DemandCohort],
     offsets: list[int],
-    gates_by_id: dict,
+    gates_by_id: dict[str, GateInfo],
     demand_factor: float,
-    dwell_seconds: float,
+    gate_assignments: Optional[list[str]] = None,
 ) -> dict:
     """
-    Compute peak queue, P95 wait time, total delay and spillback
-    using an M/D/c queuing model approximation.
+    Estimate queues from the same hourly arrival rates used by the capacity
+    feasibility check.
     """
-    BUCKET = 5  # minutes
+    assignments = gate_assignments or [c.assignedGateId for c in cohorts]
+    gate_arrivals = compute_calibrated_gate_arrivals(
+        cohorts, offsets, gates_by_id, demand_factor, assignments
+    )
+    arrival_buckets = [
+        bucket for arrivals in gate_arrivals.values() for bucket in arrivals
+    ]
+    buckets = (
+        range(min(arrival_buckets), max(arrival_buckets) + 5, 5)
+        if arrival_buckets else []
+    )
+    queues = {gate_id: 0.0 for gate_id in gates_by_id}
+    peak_queue = 0.0
+    spillback_meters = 0.0
     total_delay_veh_min = 0.0
-    peak_queue_total = 0.0
-    p95_waits = []
+    wait_samples: list[float] = []
 
-    for gate in gates_by_id.values():
-        gate_cohorts = [c for c in cohorts if c.assignedGateId == gate.id]
-        c_servers = gate.bays  # c = number of servers
+    for bucket in buckets:
+        total_queue = 0.0
+        for gate_id, gate in gates_by_id.items():
+            arrival_vehicles = gate_arrivals[gate_id].get(bucket, 0.0) * 5.0 / 60.0
+            capacity_vehicles = gate.hourlyCapacity * 5.0 / 60.0
+            queues[gate_id] = max(
+                0.0, queues[gate_id] + arrival_vehicles - capacity_vehicles
+            )
+            total_queue += queues[gate_id]
+            if queues[gate_id] > 0:
+                wait_samples.append(queues[gate_id] * 60.0 / gate.hourlyCapacity)
+            spillback_meters = max(
+                spillback_meters,
+                max(0.0, queues[gate_id] - gate.bays * 5) * 3.75,
+            )
 
-        # Service rate per server: vehicles per minute
-        mu = 60.0 / (dwell_seconds / 60.0)  # veh/hr per bay
-        mu_per_min = mu / 60.0
+        peak_queue = max(peak_queue, total_queue)
+        total_delay_veh_min += total_queue * 5.0
 
-        # Build arrival queue over time
-        queue = 0.0
-        gate_peak_q = 0.0
-        gate_delays = []
-
-        for t in range(150, 225, BUCKET):  # 2:30 PM to 3:45 PM window
-            arrivals = 0.0
-            for cohort, offset in zip(cohorts, offsets):
-                if cohort.assignedGateId != gate.id:
-                    continue
-                center = _hm_to_minutes(cohort.currentDismissalTime) + offset
-                if abs(t - center) <= 10:
-                    arrivals += cohort.vehicleDemand * demand_factor * (BUCKET / 20.0)
-
-            # Service capacity this bucket
-            served = min(queue + arrivals, c_servers * mu_per_min * BUCKET)
-            queue = max(0.0, queue + arrivals - served)
-
-            if queue > 0:
-                wait = queue / (c_servers * mu_per_min) if (c_servers * mu_per_min) > 0 else 0.0
-                gate_delays.append(wait)
-
-            gate_peak_q = max(gate_peak_q, queue)
-
-        peak_queue_total += gate_peak_q
-        if gate_delays:
-            gate_delays.sort()
-            p95_idx = max(0, int(len(gate_delays) * 0.95) - 1)
-            p95_waits.append(gate_delays[p95_idx])
-
-        # Total delay contribution: area under queue curve
-        for cohort, offset in zip(cohorts, offsets):
-            if cohort.assignedGateId == gate.id:
-                # Simple heuristic: each veh waits proportional to gate overload
-                overload = max(0.0, gate_peak_q / max(1, c_servers))
-                total_delay_veh_min += cohort.vehicleDemand * demand_factor * overload * 0.5
-
-    p95_wait_min = max(p95_waits) if p95_waits else 0.0
+    wait_samples.sort()
+    p95_wait_min = (
+        wait_samples[max(0, math.ceil(len(wait_samples) * 0.95) - 1)]
+        if wait_samples else 0.0
+    )
     total_delay_veh_hrs = total_delay_veh_min / 60.0
 
     return {
-        "peak_queue": round(peak_queue_total, 1),
+        "peak_queue": round(peak_queue, 1),
         "p95_wait_min": round(p95_wait_min, 1),
         "total_delay_veh_hrs": round(total_delay_veh_hrs, 1),
+        "spillback_meters": round(spillback_meters, 1),
     }
 
 
@@ -256,7 +273,6 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
     scenario = get_scenario()
     cohorts = scenario.cohorts
     gates_by_id = {g.id: g for g in scenario.gates}
-    dwell_seconds = scenario.school.averageDwellTimeSeconds
     demand_factor = constraints.demandFactor
     fixed_groups = set(constraints.fixedGroups)
     sibling_sync = constraints.siblingSync
@@ -274,6 +290,7 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
 
     # Build offset space per cohort
     cohort_offset_spaces: list[list[int]] = []
+    cohort_gate_spaces: list[list[str]] = []
     for cohort in cohorts:
         if cohort.id in fixed_groups or cohort.id in sibling_leaders:
             # Fixed or sibling follower: only offset 0 (will be set from leader later)
@@ -284,21 +301,65 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
             ]
             cohort_offset_spaces.append(valid_offsets if valid_offsets else [0])
 
+        eligible_gates = cohort.eligibleGateIds or [cohort.assignedGateId]
+        if not constraints.allowGateReassignment:
+            eligible_gates = [cohort.assignedGateId]
+        if constraints.zoneRestrictions:
+            restricted_gate_ids = {
+                restriction.removesuffix("-only")
+                for restriction in constraints.zoneRestrictions
+            }
+            eligible_gates = [
+                gate_id for gate_id in eligible_gates
+                if gate_id in restricted_gate_ids
+            ]
+        valid_gates = [
+            gate_id for gate_id in eligible_gates
+            if gate_id in gates_by_id
+            and (gate_id == cohort.assignedGateId or gates_by_id[gate_id].bays >= cohort.bayRequirement)
+        ]
+        cohort_gate_spaces.append(valid_gates)
+
+    cohorts_without_eligible_gates = [
+        cohort.cohort for cohort, gate_space in zip(cohorts, cohort_gate_spaces)
+        if not gate_space
+    ]
+    if cohorts_without_eligible_gates:
+        return ScheduleSearchResponse(
+            candidates=[],
+            totalEvaluated=0,
+            feasibleCount=0,
+            infeasibleCount=0,
+            dominatedCount=0,
+            searchExplanation=(
+                "No eligible gate assignment satisfies the requested gate restrictions "
+                "and scenario eligibility/bay requirements for: "
+                f"{', '.join(cohorts_without_eligible_gates)}. "
+                "Current gate assignments are retained as grandfathered assignments."
+            ),
+        )
+
     # Limit search space
     total_combos = 1
     for space in cohort_offset_spaces:
+        total_combos *= len(space)
+    for space in cohort_gate_spaces:
         total_combos *= len(space)
     logger.info(f"Planning search space: {total_combos} raw combinations")
 
     all_candidates: list[dict] = []
     evaluated = 0
     infeasible_count = 0
+    infeasibility_reasons: dict[str, int] = {}
+    infeasible_gate_counts: dict[str, int] = {}
 
     # Enumerate combinations
-    for raw_offsets in itertools.islice(
-        itertools.product(*cohort_offset_spaces), MAX_COMBINATIONS
+    search_space = itertools.product(*cohort_offset_spaces, *cohort_gate_spaces)
+    for raw_candidate in itertools.islice(
+        search_space, MAX_COMBINATIONS
     ):
-        offsets = list(raw_offsets)
+        offsets = list(raw_candidate[:len(cohorts)])
+        gate_assignments = list(raw_candidate[len(cohorts):])
 
         # Apply sibling sync: followers get leader's offset
         for i, cohort in enumerate(cohorts):
@@ -310,15 +371,24 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
                 offsets[i] = offsets[leader_idx]
 
         evaluated += 1
-        gate_loads = _compute_gate_loads(cohorts, offsets, gates_by_id, demand_factor)
+        gate_loads = _compute_gate_loads(
+            cohorts, offsets, gates_by_id, demand_factor, gate_assignments
+        )
         feasible, label, reason = _is_feasible(gate_loads, gates_by_id)
 
         if not feasible:
             infeasible_count += 1
+            infeasibility_reasons[reason] = infeasibility_reasons.get(reason, 0) + 1
+            for gate_id, load in gate_loads.items():
+                gate = gates_by_id[gate_id]
+                if load / gate.hourlyCapacity > GATE_SAFETY_MARGIN:
+                    infeasible_gate_counts[gate_id] = (
+                        infeasible_gate_counts.get(gate_id, 0) + 1
+                    )
             continue
 
         queue_metrics = _compute_queue_metrics(
-            cohorts, offsets, gates_by_id, demand_factor, dwell_seconds
+            cohorts, offsets, gates_by_id, demand_factor, gate_assignments
         )
         obj_score, disruption_score = _score_candidate(
             gate_loads, gates_by_id, offsets, objective, queue_metrics
@@ -327,6 +397,7 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
         all_candidates.append(
             {
                 "offsets": offsets,
+                "gate_assignments": gate_assignments,
                 "gate_loads": gate_loads,
                 "feasibility_label": label,
                 "feasibility_reason": reason,
@@ -339,6 +410,18 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
     if not all_candidates:
         # Return a baseline-only "no improvement found" response
         logger.warning("No feasible candidates found — returning empty schedule list")
+        common_reason = max(
+            infeasibility_reasons, key=infeasibility_reasons.get, default="No candidate satisfied the gate constraints."
+        )
+        capacity_blockers = "; ".join(
+            f"{gates_by_id[gate_id].name}: over the existing 105% limit "
+            f"in {count} evaluated combinations"
+            for gate_id, count in sorted(
+                infeasible_gate_counts.items(),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        )
         return ScheduleSearchResponse(
             candidates=[],
             totalEvaluated=evaluated,
@@ -347,7 +430,10 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
             dominatedCount=0,
             searchExplanation=(
                 f"Evaluated {evaluated} combinations. All were infeasible under the "
-                "provided constraints. Try relaxing maxShiftMin or gate restrictions."
+                f"provided constraints. Most common rejection: {common_reason}. "
+                f"Capacity blockers: {capacity_blockers or 'none identified'}. "
+                "Gate capacities were not increased; reassignment was limited to "
+                "scenario-eligible gates that satisfy bay requirements."
             ),
         )
 
@@ -380,15 +466,11 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
 
     # ── Baseline metrics (for computing reduction %) ──────────────────────
     baseline_offsets = [0] * len(cohorts)
-    baseline_gate_loads = _compute_gate_loads(
+    baseline_metrics = _compute_queue_metrics(
         cohorts, baseline_offsets, gates_by_id, demand_factor
     )
-    baseline_metrics = _compute_queue_metrics(
-        cohorts, baseline_offsets, gates_by_id, demand_factor, dwell_seconds
-    )
-    baseline_peak_q = baseline_metrics["peak_queue"] or 1.0
-    baseline_wait = baseline_metrics["p95_wait_min"] or 1.0
-    baseline_delay = baseline_metrics["total_delay_veh_hrs"] or 1.0
+    baseline_peak_q = baseline_metrics["peak_queue"]
+    baseline_wait = baseline_metrics["p95_wait_min"]
 
     # ── Build ScheduleCandidate objects ──────────────────────────────────
     plan_names = ["Alpha", "Beta", "Gamma"]
@@ -398,22 +480,20 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
 
     for rank, cand in enumerate(top_candidates):
         offsets = cand["offsets"]
+        gate_assignments = cand["gate_assignments"]
         qm = cand["queue_metrics"]
         peak_q = qm["peak_queue"]
         p95_wait = qm["p95_wait_min"]
         total_delay = qm["total_delay_veh_hrs"]
 
-        queue_red_pct = round(max(0.0, (baseline_peak_q - peak_q) / baseline_peak_q * 100), 1)
-        wait_red_min = round(max(0.0, baseline_wait - p95_wait), 1)
-
-        # Estimate spillback from overflow vehicles at bottleneck gate
-        bottleneck = max(scenario.gates, key=lambda g: cand["gate_loads"].get(g.id, 0))
-        overflow = max(0.0, cand["gate_loads"].get(bottleneck.id, 0) - bottleneck.hourlyCapacity)
-        baseline_overflow = max(
-            0.0,
-            baseline_gate_loads.get(bottleneck.id, 0) - bottleneck.hourlyCapacity,
+        queue_red_pct = (
+            round((baseline_peak_q - peak_q) / baseline_peak_q * 100, 1)
+            if baseline_peak_q > 0 else None
         )
-        spillback_red_m = round(max(0.0, (baseline_overflow - overflow) * 3.75), 0)
+        wait_red_min = round(baseline_wait - p95_wait, 1)
+        spillback_red_m = round(
+            baseline_metrics["spillback_meters"] - qm["spillback_meters"], 1
+        )
 
         # Max shift across non-fixed cohorts
         max_offset = max(
@@ -436,6 +516,10 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
             for i, o in enumerate(offsets)
             if o != 0 and cohorts[i].id not in fixed_groups
         ]
+        reassigned_cohorts = [
+            cohorts[i].cohort for i, gate_id in enumerate(gate_assignments)
+            if gate_id != cohorts[i].assignedGateId
+        ]
         if shifted_cohorts:
             desc = (
                 f"Shifts {', '.join(shifted_cohorts[:2])} "
@@ -443,6 +527,8 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
             )
         else:
             desc = "Baseline schedule with adjusted gate assignments only."
+        if reassigned_cohorts:
+            desc += f" Routes {', '.join(reassigned_cohorts)} to an eligible overflow gate."
 
         # Group schedule rows
         group_rows: list[GroupScheduleRow] = []
@@ -450,7 +536,8 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
             offset = offsets[i]
             base_min = _hm_to_minutes(cohort.currentDismissalTime)
             proposed_min = base_min + offset
-            gate = gates_by_id.get(cohort.assignedGateId)
+            assigned_gate_id = gate_assignments[i]
+            gate = gates_by_id.get(assigned_gate_id)
             gate_display = (
                 f"{gate.name.split('—')[0].strip()} ({gate.name.split('—')[1].strip()})"
                 if gate else cohort.assignedGateId
@@ -466,9 +553,17 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
                     timeDelta=_delta_display(offset),
                     offsetMinutes=offset,
                     assignedGate=gate_display,
-                    assignedGateId=cohort.assignedGateId,
+                    assignedGateId=assigned_gate_id,
                     zoneBay=bays,
                     vehicles=round(cohort.vehicleDemand * demand_factor),
+                    requiredBays=cohort.bayRequirement,
+                    availableBays=gate.bays if gate else 0,
+                    bayConstraintStatus=(
+                        "grandfathered"
+                        if gate and assigned_gate_id == cohort.assignedGateId
+                        and gate.bays < cohort.bayRequirement
+                        else "satisfied"
+                    ),
                 )
             )
 
@@ -489,6 +584,7 @@ def search_schedules(request: ScheduleSearchRequest) -> ScheduleSearchResponse:
             objectiveScore=cand["obj_score"],
             disruptionScore=cand["disruption_score"],
             gateLoads={k: round(v, 1) for k, v in cand["gate_loads"].items()},
+            gateCapacities={g.id: float(g.hourlyCapacity) for g in scenario.gates},
             isFeasible=True,
             feasibilityReason=cand["feasibility_reason"],
         )

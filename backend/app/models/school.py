@@ -53,6 +53,10 @@ class DemandCohort(BaseModel):
     vehicleDemand: int
     currentDismissalTime: str  # "HH:MM" 24-hour
     assignedGateId: str
+    # Explicit operational eligibility. When omitted, the assigned gate is the
+    # only allowed gate. This avoids treating a display-only gate name as
+    # permission to reroute a cohort.
+    eligibleGateIds: list[str] | None = None
     bayRequirement: int
     isKindergarten: bool
     hasSiblingGroup: bool

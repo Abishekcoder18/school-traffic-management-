@@ -10,7 +10,7 @@ class MetricComparison(BaseModel):
     baseline: float
     candidate: float
     unit: str
-    deltaPct: float
+    deltaPct: Optional[float]
 
 
 class SimulationMetrics(BaseModel):
@@ -78,6 +78,8 @@ class StressScenarioResult(BaseModel):
     demandFactor: float
     dwellFactor: float
     complianceRate: float  # 0.0 to 1.0
+    peakGateUtilizationPct: float
+    gateCapacityWithinLimit: bool
     meanQueue: float
     p95Wait: float
     worstCaseQueue: float

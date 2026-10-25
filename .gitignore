@@ -20,6 +20,8 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+backend/data/map_state.json
+backend/.seed-users.json
 
 # Local editor and operating system files
 .vscode/
@@ -65,5 +67,6 @@ sumo_smoke_test/tripinfo.xml
 
 # Assistant-specific local tooling; review before sharing
 .agents/
+.superpowers/
 
 # Existing frontend; replacement will be integrated separately

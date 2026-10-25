@@ -1,5 +1,4 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { TrafficMetric } from '../types';
 
 interface MetricCardProps {
@@ -8,9 +7,6 @@ interface MetricCardProps {
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({ metric, icon }) => {
-  const isAlert = metric.status === 'alert';
-  const isWarning = metric.status === 'warning';
-
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs transition-all hover:border-slate-300">
       <div className="flex items-center justify-between gap-3 mb-3">
@@ -26,37 +22,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({ metric, icon }) => {
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5 text-xs">
-        {metric.trend === 'up' && (
-          <TrendingUp
-            className={`w-3.5 h-3.5 ${
-              isAlert ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-blue-600'
-            }`}
-          />
-        )}
-        {metric.trend === 'down' && (
-          <TrendingDown className="w-3.5 h-3.5 text-green-600" />
-        )}
-        {metric.trend === 'neutral' && (
-          <Minus className="w-3.5 h-3.5 text-slate-400" />
-        )}
-
-        <span
-          className={`font-medium ${
-            isAlert
-              ? 'text-red-600'
-              : isWarning
-              ? 'text-amber-600'
-              : 'text-slate-600'
-          }`}
-        >
-          {metric.change}
-        </span>
-      </div>
-
-      <p className="mt-2 text-xs text-slate-500 line-clamp-1">
-        {metric.description}
-      </p>
+      <p className="mt-2 text-xs text-slate-500">Synthetic scenario baseline</p>
     </div>
   );
 };

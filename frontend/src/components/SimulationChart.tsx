@@ -124,7 +124,7 @@ export const SimulationChart: React.FC<SimulationChartProps> = ({ timeIntervals 
           Queue comparison based on deterministic queuing model (synthetic data).
         </span>
         <span className="text-[11px] text-slate-400">
-          Source: DeterministicEstimate (M/D/c Queuing Theory)
+          Source: DeterministicEstimate (five-minute bucket queue model)
         </span>
       </div>
     </div>

@@ -1,22 +1,6 @@
 """
-GateFlow AI — User ORM Model
-------------------------------
-Mirrors the `users` table in the `schooltraffic` MySQL database.
-
-If your dump uses different column names, update the Column definitions below
-to match exactly — names are case-sensitive in MySQL on Linux hosts.
-
-Expected table DDL (auto-created if not present):
-    CREATE TABLE users (
-        id          INT AUTO_INCREMENT PRIMARY KEY,
-        username    VARCHAR(100) UNIQUE NOT NULL,
-        email       VARCHAR(255) UNIQUE NOT NULL,
-        full_name   VARCHAR(255),
-        role        VARCHAR(50)  DEFAULT 'viewer',
-        hashed_password VARCHAR(255) NOT NULL,
-        is_active   TINYINT(1)   DEFAULT 1,
-        created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP
-    );
+GateFlow AI user records stored in PostgreSQL.
+The schema is created from this model by SQLAlchemy at backend startup.
 """
 from __future__ import annotations
 

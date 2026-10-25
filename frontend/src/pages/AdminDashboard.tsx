@@ -55,6 +55,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const INITIAL_TRAFFIC_METRICS = scenario.trafficMetrics;
   const GATES_DATA = scenario.gates;
   const BOTTLENECK_DIAGNOSIS = diagnosis;
+  const underutilizedGate = GATES_DATA
+    .filter((gate) => gate.id !== BOTTLENECK_DIAGNOSIS.gateId)
+    .sort((a, b) => a.utilizationRate - b.utilizationRate)[0];
 
   return (
     <div className="space-y-6">
@@ -64,18 +67,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                Live Traffic Status
+                Synthetic Scenario Baseline
               </span>
               <span className="text-xs text-slate-400">·</span>
               <span className="text-xs text-slate-500">
-                Updated 1 minute ago from campus sensors
+                Deterministic estimates · no live sensor feed
               </span>
             </div>
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
               {SCHOOL_PROFILE.name}
             </h2>
             <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-              Currently monitoring the {SCHOOL_PROFILE.activeSession}. 540 registered vehicles across 4 active gates and 21 dedicated pickup bays.
+              {SCHOOL_PROFILE.activeSession}: {SCHOOL_PROFILE.totalVehicles} modeled vehicles across {scenario.gates.length} gates and {SCHOOL_PROFILE.pickupBays} pickup bays.
             </p>
           </div>
 
@@ -107,14 +110,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-red-900">
-                Gate 2 Spillback Alert — East Wing Loop Overloaded
+                Modeled Capacity Bottleneck — {BOTTLENECK_DIAGNOSIS.gateName.split('—')[0].trim()}
               </h3>
               <span className="text-[11px] font-semibold bg-red-200/70 text-red-800 px-2 py-0.2 rounded-full">
-                Active Congestion
+                Synthetic estimate
               </span>
             </div>
             <p className="text-xs text-red-700 mt-1 max-w-3xl leading-relaxed">
-              Queue length at Gate 2 has reached <strong className="font-semibold">48 vehicles</strong> (13 over campus threshold). Turn-lane spillover extends 180 meters onto Municipal Parkway, slowing local transit.
+              Scenario peak demand is <strong className="font-semibold">{BOTTLENECK_DIAGNOSIS.peakDemandRate} veh/h</strong> against {BOTTLENECK_DIAGNOSIS.maxThroughputCapacity} veh/h capacity ({Math.round(BOTTLENECK_DIAGNOSIS.overloadRatio * 100)}% of capacity). This is modeled from synthetic inputs, not an observed queue or live traffic feed.
             </p>
           </div>
         </div>
@@ -162,7 +165,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 </h3>
               </div>
               <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                Gate 2 East Wing
+                {BOTTLENECK_DIAGNOSIS.gateName.split('—')[0].trim()}
               </span>
             </div>
 
@@ -191,7 +194,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 <div className="bg-slate-50 border border-slate-100 p-3 rounded-lg text-center">
                   <div className="text-[11px] text-slate-500 font-medium">Overload Ratio</div>
                   <div className="text-base font-bold text-red-600 tabular-nums mt-0.5">
-                    {BOTTLENECK_DIAGNOSIS.overloadRatio}x (150%)
+                    {BOTTLENECK_DIAGNOSIS.overloadRatio}x ({Math.round(BOTTLENECK_DIAGNOSIS.overloadRatio * 100)}%)
                   </div>
                 </div>
               </div>
@@ -200,7 +203,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
           <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
             <span className="text-xs text-slate-500">
-              Adjacent Gate 4 (Athletics) has 65% idle capacity available.
+              {underutilizedGate
+                ? `${underutilizedGate.name.split('—')[0].trim()} is least utilized at ${underutilizedGate.utilizationRate}% of capacity.`
+                : 'No alternate gate utilization data is available.'}
             </span>
             <button
               onClick={() => onNavigate('cause')}
@@ -218,7 +223,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <h3 className="text-sm font-bold text-slate-900">
               Gate Utilization
             </h3>
-            <span className="text-xs text-slate-400">4 Operational</span>
+            <span className="text-xs text-slate-400">{GATES_DATA.length} Operational</span>
           </div>
 
           <div className="mt-4 space-y-3.5">
@@ -306,7 +311,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 Find the Cause
               </h4>
               <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Analyze vehicle demand vs gate throughput capacities to pinpoint root bottlenecks and perimeter spillback causes.
+                Compare scenario-provided peak demand with configured gate capacities to identify modeled bottlenecks.
               </p>
             </div>
 
@@ -358,7 +363,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 Test the Schedule
               </h4>
               <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Run microscopic traffic simulation to verify peak queue reductions, 95th-percentile wait times, and zero-spillback guarantees.
+                Run a deterministic estimate to compare queue, wait, delay, and spillback metrics against the scenario baseline.
               </p>
             </div>
 

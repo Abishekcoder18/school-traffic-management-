@@ -38,8 +38,9 @@ from app.services.ai_service import parse_constraints_deterministic
 from app.services.constraint_service import validate_constraints
 from app.services.data_service import get_scenario, reset_scenario
 from app.services.diagnosis_service import compute_diagnosis
-from app.services.planning_service import search_schedules
+from app.services.planning_service import _compute_queue_metrics, search_schedules
 from app.services.simulation_service import (
+    _simulate_queue_timeseries,
     get_registered_schedule,
     register_schedule,
     reset_simulations,
@@ -63,6 +64,31 @@ def test_health_endpoint():
     assert data["dataSource"] == "Synthetic"
     assert data["sumo"] == "not_installed"
     assert data["simulationMethod"] == "DeterministicEstimate"
+
+
+def test_protected_endpoint_requires_a_bearer_token():
+    from app.routers.auth import get_current_user
+    from app.routers.schools import require_traffic_admin
+
+    app.dependency_overrides.pop(get_current_user, None)
+    app.dependency_overrides.pop(require_traffic_admin, None)
+    response = client.get("/api/scenario")
+    assert response.status_code == 401
+    assert client.post("/api/auth/register", json={}).status_code == 404
+
+
+def test_parent_cannot_access_administrator_traffic_data():
+    from types import SimpleNamespace
+
+    from app.routers.auth import get_current_user
+    from app.routers.schools import require_traffic_admin
+
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(role="parent")
+    app.dependency_overrides.pop(require_traffic_admin, None)
+    assert client.get("/api/scenario").status_code == 403
+    assert client.get("/api/scenario/driver").status_code == 403
+    assert client.post("/api/schedules/search", json={}).status_code == 403
+    assert client.put("/api/maps/active", json={"placeId": "test-school"}).status_code == 404
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -133,6 +159,8 @@ def test_diagnosis_computed_from_data():
     result = compute_diagnosis()
     assert result.diagnosis.overloadRatio == pytest.approx(1.5, abs=0.1)
     assert result.diagnosis.peakDemandRate > result.diagnosis.maxThroughputCapacity
+    assert "not an hourly rate" in result.diagnosis.explanation
+    assert not any("spillback" in ev.title.lower() for ev in result.diagnosis.evidence)
     for ev in result.diagnosis.evidence:
         assert ev.title
         assert ev.metric
@@ -307,6 +335,113 @@ def test_planner_returns_feasible_candidates():
         assert c.constraintFeasibility in ["100% Compliant", "Minor Leniency"]
 
 
+def test_candidate_reductions_match_queue_estimates():
+    constraints = ParsedConstraints(
+        originalPrompt="queue reduction",
+        demandFactor=1.0,
+        fixedGroups=["c-prek"],
+        siblingSync=False,
+        maxShiftMin=15,
+        optimizationObjective="queue_reduction",
+    )
+    result = search_schedules(ScheduleSearchRequest(constraints=constraints))
+    scenario = get_scenario()
+    gates_by_id = {gate.id: gate for gate in scenario.gates}
+    baseline = _compute_queue_metrics(
+        scenario.cohorts, [0] * len(scenario.cohorts), gates_by_id, 1.0
+    )
+
+    assert result.candidates
+    for candidate in result.candidates:
+        offsets = [row.offsetMinutes for row in candidate.groupSchedule]
+        assignments = [row.assignedGateId for row in candidate.groupSchedule]
+        estimated = _compute_queue_metrics(
+            scenario.cohorts, offsets, gates_by_id, 1.0, assignments
+        )
+        expected_queue_reduction = (
+            round(
+                (baseline["peak_queue"] - estimated["peak_queue"])
+                / baseline["peak_queue"] * 100,
+                1,
+            )
+            if baseline["peak_queue"] > 0 else None
+        )
+
+        assert candidate.peakQueueReductionPct == expected_queue_reduction
+        assert candidate.waitTimeReductionMin == pytest.approx(
+            round(baseline["p95_wait_min"] - estimated["p95_wait_min"], 1)
+        )
+        assert candidate.spillbackReductionMeters == pytest.approx(
+            round(baseline["spillback_meters"] - estimated["spillback_meters"], 1)
+        )
+
+
+def test_eligible_gate_reassignment_supports_baseline_schedule_and_comparison():
+    constraints = ParsedConstraints(
+        originalPrompt="keep sibling dismissal times together",
+        demandFactor=1.0,
+        fixedGroups=["c-prek"],
+        siblingSync=True,
+        maxShiftMin=15,
+        allowGateReassignment=True,
+        optimizationObjective="queue_reduction",
+    )
+    search_resp = client.post(
+        "/api/schedules/search",
+        json={"constraints": constraints.model_dump()},
+    )
+    assert search_resp.status_code == 200
+    candidate = search_resp.json()["candidates"][0]
+    rows = {row["cohortId"]: row for row in candidate["groupSchedule"]}
+
+    assert rows["c-g45"]["assignedGateId"] == "gate-4"
+    assert rows["c-g45"]["bayConstraintStatus"] == "satisfied"
+    assert rows["c-g13"]["bayConstraintStatus"] == "grandfathered"
+    for gate_id, load in candidate["gateLoads"].items():
+        assert load <= candidate["gateCapacities"][gate_id] * 1.05
+
+    sim_resp = client.post(
+        "/api/simulation/run",
+        json={"scheduleId": candidate["id"]},
+    )
+    assert sim_resp.status_code == 200
+    simulation = sim_resp.json()
+    assert simulation["simulationMethod"] == "DeterministicEstimate"
+    assert simulation["metrics"]["peakQueue"]["baseline"] >= (
+        simulation["metrics"]["peakQueue"]["candidate"]
+    )
+
+    compare_resp = client.get(
+        f"/api/simulation/compare/{simulation['runId']}"
+    )
+    assert compare_resp.status_code == 200
+    comparison = compare_resp.json()
+    expected_reduction = max(
+        0.0, -simulation["metrics"]["peakQueue"]["deltaPct"]
+    )
+    assert comparison["queueReductionPct"] == expected_reduction
+    assert comparison["computedFrom"] == "DeterministicEstimate"
+
+
+def test_high_demand_infeasibility_identifies_gate_capacity_blockers():
+    constraints = ParsedConstraints(
+        originalPrompt="increase demand",
+        demandFactor=1.3,
+        fixedGroups=["c-prek"],
+        siblingSync=True,
+        maxShiftMin=30,
+        optimizationObjective="queue_reduction",
+    )
+    response = client.post(
+        "/api/schedules/search",
+        json={"constraints": constraints.model_dump()},
+    )
+    assert response.status_code == 422
+    detail = response.json()["detail"]["error"]["details"][0]
+    assert "Gate 3" in detail
+    assert "105% limit" in detail
+
+
 def test_infeasible_constraints_raise_error():
     """POST to schedules/search with zero max shift should return 422."""
     constraints = ParsedConstraints(
@@ -445,13 +580,23 @@ def test_stress_test_uses_selected_plan():
     constraints = ParsedConstraints(
         originalPrompt="stress test",
         demandFactor=1.0,
-        fixedGroups=[],
-        siblingSync=False,
-        maxShiftMin=20,
+        fixedGroups=["c-prek"],
+        siblingSync=True,
+        maxShiftMin=15,
         optimizationObjective="queue_reduction",
     )
     search_resp = client.post("/api/schedules/search", json={"constraints": constraints.model_dump()})
     schedule_id = search_resp.json()["candidates"][0]["id"]
+    schedule = get_registered_schedule(schedule_id)
+    assert schedule is not None
+    assert any(
+        row.assignedGateId != next(
+            cohort.assignedGateId
+            for cohort in get_scenario().cohorts
+            if cohort.id == row.cohortId
+        )
+        for row in schedule.groupSchedule
+    )
 
     stress_resp = client.post("/api/stress/run", json={"scheduleId": schedule_id})
     assert stress_resp.status_code == 200
@@ -463,6 +608,30 @@ def test_stress_test_uses_selected_plan():
         assert "explanation" in sc
         assert sc["status"] in ["stable", "degraded", "critical"]
 
+    scenario = get_scenario()
+    offsets = {row.cohortId: row.offsetMinutes for row in schedule.groupSchedule}
+    assignments = {row.cohortId: row.assignedGateId for row in schedule.groupSchedule}
+    _, expected_metrics = _simulate_queue_timeseries(
+        scenario.cohorts,
+        offsets,
+        {gate.id: gate for gate in scenario.gates},
+        1.0,
+        assignments,
+    )
+    normal = next(
+        result for result in stress_data["scenarios"]
+        if result["scenarioId"] == "normal"
+    )
+    assert normal["meanQueue"] == pytest.approx(expected_metrics["mean_queue"])
+    demand_surge = next(
+        result for result in stress_data["scenarios"]
+        if result["scenarioId"] == "demand-surge-30"
+    )
+    assert demand_surge["peakGateUtilizationPct"] > 105
+    assert demand_surge["gateCapacityWithinLimit"] is False
+    assert demand_surge["status"] == "degraded"
+    assert "105% planning limit" in demand_surge["explanation"]
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Test 19: Invalid API Requests
@@ -470,7 +639,7 @@ def test_stress_test_uses_selected_plan():
 def test_missing_schedule_id_returns_404():
     resp = client.post("/api/simulation/run", json={"scheduleId": "does-not-exist"})
     assert resp.status_code == 404
-    assert "error" in resp.json()
+    assert resp.json()["detail"]["error"]["code"] == "SCHEDULE_NOT_FOUND"
 
 
 def test_empty_prompt_returns_validation_error():
@@ -488,7 +657,7 @@ def test_nonexistent_schedule_returns_404():
 def test_simulation_without_search_returns_404():
     resp = client.post("/api/simulation/run", json={"scheduleId": "not-registered"})
     assert resp.status_code == 404
-    assert resp.json()["error"]["code"] == "SCHEDULE_NOT_FOUND"
+    assert resp.json()["detail"]["error"]["code"] == "SCHEDULE_NOT_FOUND"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

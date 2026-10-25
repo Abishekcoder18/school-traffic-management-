@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.routers.schools import require_traffic_admin
 from app.models.schedule import (
     ConstraintParseRequest,
     ConstraintValidationResult,
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 _candidate_store: dict[str, ScheduleCandidate] = {}
 
 
-@router.post("/constraints/parse", response_model=ConstraintValidationResult)
+@router.post("/constraints/parse", response_model=ConstraintValidationResult, dependencies=[Depends(require_traffic_admin)])
 def parse_constraints(body: ConstraintParseRequest):
     """
     Parse a natural-language optimization request into structured constraints.
@@ -57,7 +58,7 @@ def parse_constraints(body: ConstraintParseRequest):
     return validated
 
 
-@router.post("/schedules/search", response_model=ScheduleSearchResponse)
+@router.post("/schedules/search", response_model=ScheduleSearchResponse, dependencies=[Depends(require_traffic_admin)])
 def search_schedule(body: ScheduleSearchRequest):
     """
     Search for feasible schedules given validated constraints.
@@ -106,7 +107,7 @@ def search_schedule(body: ScheduleSearchRequest):
     return result
 
 
-@router.get("/schedules/{schedule_id}", response_model=ScheduleCandidate)
+@router.get("/schedules/{schedule_id}", response_model=ScheduleCandidate, dependencies=[Depends(require_traffic_admin)])
 def get_schedule(schedule_id: str):
     """Retrieve a specific schedule candidate by ID."""
     candidate = _candidate_store.get(schedule_id)
